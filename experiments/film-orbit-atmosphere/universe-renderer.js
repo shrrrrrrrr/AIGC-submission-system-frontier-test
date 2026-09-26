@@ -1,7 +1,84 @@
 import * as THREE from 'three';
 import { createParticleField, getParticleQuality, updateParticleField } from './universe-particles.js';
+import { sceneDescriptors } from './universe-descriptors.js';
+import { createSceneTimeline } from './universe-timeline.js';
+import { createTransitionPass } from './universe-transition.js';
 
-export function createUniverseRenderer({ sceneRoot, input, reducedMotion }) {
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const lerp = (a, b, progress) => a + (b - a) * progress;
+
+function prepareDescriptors() {
+  return sceneDescriptors.map((item) => ({
+    ...item,
+    fogColorValue: new THREE.Color(item.fogColor),
+    particleTintValue: new THREE.Color(item.particleTint),
+    atmosphereColorAValue: new THREE.Color(item.atmosphereColorA),
+    atmosphereColorBValue: new THREE.Color(item.atmosphereColorB),
+  }));
+}
+
+function createTextureCache(onReady = () => {}) {
+  const loader = new THREE.TextureLoader();
+  const promises = new Map();
+  const textures = new Map();
+  const fallbackData = new Uint8Array([3, 9, 21, 255]);
+  const fallback = new THREE.DataTexture(fallbackData, 1, 1, THREE.RGBAFormat);
+  fallback.colorSpace = THREE.SRGBColorSpace;
+  fallback.needsUpdate = true;
+
+  function ensure(url) {
+    if (promises.has(url)) return promises.get(url);
+    const promise = new Promise((resolve) => {
+      loader.load(url, (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.needsUpdate = true;
+        textures.set(url, texture);
+        onReady();
+        resolve(texture);
+      }, undefined, (error) => {
+        console.warn('[universe] texture fallback', url, error);
+        textures.set(url, fallback);
+        onReady();
+        resolve(fallback);
+      });
+    });
+    promises.set(url, promise);
+    return promise;
+  }
+
+  return {
+    fallback,
+    ensure,
+    get(url) { return textures.get(url) || fallback; },
+    dispose() {
+      textures.forEach((texture) => { if (texture !== fallback) texture.dispose(); });
+      fallback.dispose();
+      textures.clear();
+      promises.clear();
+    },
+  };
+}
+
+function blendVisualState(a, b, progress, state) {
+  state.cameraPosition.x = lerp(a.cameraPosition.x, b.cameraPosition.x, progress);
+  state.cameraPosition.y = lerp(a.cameraPosition.y, b.cameraPosition.y, progress);
+  state.cameraPosition.z = lerp(a.cameraPosition.z, b.cameraPosition.z, progress);
+  state.cameraTarget.x = lerp(a.cameraTarget.x, b.cameraTarget.x, progress);
+  state.cameraTarget.y = lerp(a.cameraTarget.y, b.cameraTarget.y, progress);
+  state.cameraTarget.z = lerp(a.cameraTarget.z, b.cameraTarget.z, progress);
+  state.fogColor.copy(a.fogColorValue).lerp(b.fogColorValue, progress);
+  state.particleTint.copy(a.particleTintValue).lerp(b.particleTintValue, progress);
+  state.particleIntensity = lerp(a.particleIntensity, b.particleIntensity, progress);
+  state.fogNear = lerp(a.fogNear, b.fogNear, progress);
+  state.fogFar = lerp(a.fogFar, b.fogFar, progress);
+  state.atmosphereStrength = lerp(a.atmosphereStrength, b.atmosphereStrength, progress);
+}
+
+export function createUniverseRenderer({ sceneRoot, sections, input, reducedMotion }) {
   const canvas = sceneRoot.querySelector('.universe-particles');
   if (!canvas) return null;
 
@@ -19,24 +96,89 @@ export function createUniverseRenderer({ sceneRoot, input, reducedMotion }) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality.dpr));
 
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x030915, 22, 98);
+  const prepared = prepareDescriptors();
+  const timeline = createSceneTimeline(sections, prepared);
+  const textureCache = createTextureCache(() => requestRender());
+  const textureUrl = (name) => new URL('./assets/universe/' + name, import.meta.url).href;
+  prepared.forEach((item) => { item.textureUrl = textureUrl(item.backgroundTexture); });
+
+  const particleScene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 140);
-  camera.position.set(0, 0, 26);
-  camera.lookAt(0, 0, -20);
   const fieldGroup = new THREE.Group();
-  scene.add(fieldGroup);
   const field = createParticleField({ quality });
   fieldGroup.add(field.points);
+  particleScene.add(fieldGroup);
+
+  const backgroundScene = new THREE.Scene();
+  const backgroundCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const backgroundMaterial = new THREE.MeshBasicMaterial({ map: textureCache.fallback, depthTest: false, depthWrite: false });
+  const backgroundQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), backgroundMaterial);
+  backgroundScene.add(backgroundQuad);
+
+  const targetOptions = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, depthBuffer: true, stencilBuffer: false };
+  const targetA = new THREE.WebGLRenderTarget(1, 1, targetOptions);
+  const targetB = new THREE.WebGLRenderTarget(1, 1, targetOptions);
+  targetA.texture.name = 'universe-scene-a';
+  targetB.texture.name = 'universe-scene-b';
+
+  const transition = createTransitionPass();
+  const visual = {
+    cameraPosition: { x: 0, y: 0, z: 26 },
+    cameraTarget: { x: 0, y: 0, z: -20 },
+    fogColor: new THREE.Color(),
+    particleTint: new THREE.Color(),
+    particleIntensity: 1,
+    fogNear: 16,
+    fogFar: 90,
+    atmosphereStrength: 1,
+  };
+  const pointer = { x: 0, y: 0 };
+  const cameraEndpoint = { x: 0, y: 0, z: 26 };
+  const targetEndpoint = { x: 0, y: 0, z: -20 };
 
   let width = 1;
   let height = 1;
   let pixelRatio = Math.min(window.devicePixelRatio || 1, quality.dpr);
   let frame = 0;
   let lastTime = performance.now();
-  let elapsed = 0;
   let disposed = false;
-  const cameraTarget = { x: 0, y: 0, z: -20 };
+  let elapsed = 0;
+  let layoutObserver = null;
+
+  const applyCamera = (state, motion) => {
+    cameraEndpoint.x = state.cameraPosition.x + input.current.pointerX * 1.25 * motion;
+    cameraEndpoint.y = state.cameraPosition.y - input.current.pointerY * 0.75 * motion;
+    cameraEndpoint.z = state.cameraPosition.z - input.current.scrollVelocity * 0.08 * motion;
+    targetEndpoint.x = state.cameraTarget.x + input.current.pointerX * 0.18 * motion;
+    targetEndpoint.y = state.cameraTarget.y - input.current.pointerY * 0.12 * motion;
+    targetEndpoint.z = state.cameraTarget.z;
+    camera.position.set(cameraEndpoint.x, cameraEndpoint.y, cameraEndpoint.z);
+    camera.lookAt(targetEndpoint.x, targetEndpoint.y, targetEndpoint.z);
+  };
+
+  const renderSceneState = (target, descriptor, motion) => {
+    const texture = textureCache.get(descriptor.textureUrl);
+    if (backgroundMaterial.map !== texture) {
+      backgroundMaterial.map = texture;
+      backgroundMaterial.needsUpdate = true;
+    }
+    applyCamera(visual, motion);
+    updateParticleField(field, { elapsed, input, pixelRatio, visual: {
+      fogColor: descriptor.fogColorValue,
+      fogNear: descriptor.fogNear,
+      fogFar: descriptor.fogFar,
+      particleTint: descriptor.particleTintValue,
+      particleIntensity: descriptor.particleIntensity,
+    }});
+    renderer.setRenderTarget(target);
+    renderer.setClearColor(0x030915, 1);
+    renderer.clear(true, true, true);
+    renderer.render(backgroundScene, backgroundCamera);
+    renderer.autoClear = false;
+    renderer.clearDepth();
+    renderer.render(particleScene, camera);
+    renderer.autoClear = true;
+  };
 
   const resize = () => {
     width = Math.max(1, window.innerWidth);
@@ -46,6 +188,11 @@ export function createUniverseRenderer({ sceneRoot, input, reducedMotion }) {
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    const targetWidth = Math.max(1, Math.round(width * pixelRatio));
+    const targetHeight = Math.max(1, Math.round(height * pixelRatio));
+    targetA.setSize(targetWidth, targetHeight);
+    targetB.setSize(targetWidth, targetHeight);
+    timeline.rebuild();
     requestRender();
   };
 
@@ -55,28 +202,44 @@ export function createUniverseRenderer({ sceneRoot, input, reducedMotion }) {
     lastTime = now;
     elapsed += deltaSeconds;
     input.step(deltaSeconds);
-    const motion = reducedMotion.matches ? 0 : 1;
-    const pointerX = input.current.pointerX;
-    const pointerY = input.current.pointerY;
-    const scroll = input.current.scroll;
-    const scrollArc = Math.sin(scroll * Math.PI * 2);
-    const scrollLift = Math.cos(scroll * Math.PI * 2);
+    const motion = reducedMotion.matches ? 0.28 : 1;
+    const resolved = timeline.resolve(input.current.scrollY);
+    const descriptorA = prepared[resolved.a] || prepared[0];
+    const descriptorB = prepared[resolved.b] || descriptorA;
+    textureCache.ensure(descriptorA.textureUrl);
+    textureCache.ensure(descriptorB.textureUrl);
+    const progress = resolved.a === resolved.b ? 0 : resolved.progress;
 
-    cameraTarget.x = pointerX * 0.4 + (scroll - 0.5) * 0.6;
-    cameraTarget.y = pointerY * -0.22 + scrollArc * 0.22 * motion;
-    cameraTarget.z = -20 + scrollLift * 0.6 * motion;
-    camera.position.x += (pointerX * 1.45 + (scroll - 0.5) * 1.8 - camera.position.x) * (1 - Math.exp(-3.8 * deltaSeconds));
-    camera.position.y += (pointerY * -0.82 + scrollArc * 0.7 * motion - camera.position.y) * (1 - Math.exp(-3.8 * deltaSeconds));
-    camera.position.z += (26 - scroll * 1.8 * motion - camera.position.z) * (1 - Math.exp(-2.8 * deltaSeconds));
-    camera.lookAt(cameraTarget.x, cameraTarget.y, cameraTarget.z);
+    blendVisualState(descriptorA, descriptorB, progress, visual);
+    const scrollVelocity = clamp(input.current.scrollVelocity, -2.5, 2.5);
+    const direction = scrollVelocity < 0 ? -1 : 1;
+    pointer.x = input.current.pointerX;
+    pointer.y = input.current.pointerY;
 
-    fieldGroup.rotation.y += ((pointerX * 0.045 + (scroll - 0.5) * 0.08) * motion - fieldGroup.rotation.y) * (1 - Math.exp(-2.6 * deltaSeconds));
-    fieldGroup.rotation.x += ((pointerY * 0.025 + scrollLift * 0.025 * motion) - fieldGroup.rotation.x) * (1 - Math.exp(-2.6 * deltaSeconds));
-    fieldGroup.position.z += ((input.current.scrollVelocity * 0.16 * motion) - fieldGroup.position.z) * (1 - Math.exp(-5.5 * deltaSeconds));
-
+    fieldGroup.rotation.y += ((pointer.x * 0.045 + (input.current.scroll - 0.5) * 0.08) * motion - fieldGroup.rotation.y) * (1 - Math.exp(-2.6 * deltaSeconds));
+    fieldGroup.rotation.x += ((pointer.y * 0.025 + Math.cos(input.current.scroll * Math.PI * 2) * 0.025 * motion) - fieldGroup.rotation.x) * (1 - Math.exp(-2.6 * deltaSeconds));
+    fieldGroup.position.z += ((scrollVelocity * 0.16 * motion) - fieldGroup.position.z) * (1 - Math.exp(-5.5 * deltaSeconds));
     field.material.uniforms.uMotion.value = motion;
-    updateParticleField(field, { elapsed, input, pixelRatio });
-    renderer.render(scene, camera);
+
+    renderSceneState(targetA, descriptorA, motion);
+    renderSceneState(targetB, descriptorB, motion);
+
+    transition.material.uniforms.tSceneA.value = targetA.texture;
+    transition.material.uniforms.tSceneB.value = targetB.texture;
+    transition.material.uniforms.uProgress.value = progress;
+    transition.material.uniforms.uRawProgress.value = resolved.rawProgress;
+    transition.material.uniforms.uVelocity.value = scrollVelocity;
+    transition.material.uniforms.uDirection.value = direction;
+    transition.material.uniforms.uPointer.value.set(pointer.x, pointer.y);
+    transition.material.uniforms.uDisplacement.value = reducedMotion.matches ? 0.004 : 0.018;
+    transition.material.uniforms.uSoftness.value = reducedMotion.matches ? 0.13 : 0.08;
+    transition.material.uniforms.uAtmosphereA.value.set(descriptorA.atmosphereColorAValue);
+    transition.material.uniforms.uAtmosphereB.value.set(descriptorB.atmosphereColorBValue);
+    transition.material.uniforms.uAtmosphereStrength.value = visual.atmosphereStrength;
+
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(0x000000, 0);
+    renderer.render(transition.scene, transition.camera);
   };
 
   const tick = (now) => {
@@ -98,18 +261,32 @@ export function createUniverseRenderer({ sceneRoot, input, reducedMotion }) {
     } else requestRender();
   };
 
+  const onLayoutChange = () => {
+    timeline.rebuild();
+    requestRender();
+  };
+
   input.setRenderRequest(requestRender);
   addEventListener('resize', resize, { passive: true });
   addEventListener('visibilitychange', onVisibility);
   reducedMotion.addEventListener('change', requestRender);
+  if ('ResizeObserver' in window) {
+    layoutObserver = new ResizeObserver(onLayoutChange);
+    layoutObserver.observe(document.querySelector('main'));
+  }
+  textureCache.ensure(prepared[0].textureUrl);
+  textureCache.ensure(prepared[1].textureUrl);
   resize();
+  if (import.meta.env?.DEV) window.__universeDebug = { timeline, targetA, targetB, transition, get progress() { return timeline.resolve(input.current.scrollY); } };
   requestRender();
 
   return {
     renderer,
-    scene,
     camera,
     field,
+    targetA,
+    targetB,
+    timeline,
     quality,
     dispose() {
       disposed = true;
@@ -117,9 +294,17 @@ export function createUniverseRenderer({ sceneRoot, input, reducedMotion }) {
       removeEventListener('resize', resize);
       removeEventListener('visibilitychange', onVisibility);
       reducedMotion.removeEventListener('change', requestRender);
+      layoutObserver?.disconnect();
       input.dispose();
+      targetA.dispose();
+      targetB.dispose();
+      backgroundQuad.geometry.dispose();
+      backgroundMaterial.dispose();
+      transition.geometry.dispose();
+      transition.material.dispose();
       field.geometry.dispose();
       field.material.dispose();
+      textureCache.dispose();
       renderer.dispose();
     },
   };

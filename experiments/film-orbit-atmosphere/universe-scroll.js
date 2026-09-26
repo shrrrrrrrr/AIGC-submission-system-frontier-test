@@ -2,8 +2,8 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const damp = (current, target, lambda, delta) => current + (target - current) * (1 - Math.exp(-lambda * delta));
 
 export function createScrollState({ root, reducedMotion, finePointer }) {
-  const target = { scroll: 0, scrollVelocity: 0, pointerX: 0, pointerY: 0 };
-  const current = { scroll: 0, scrollVelocity: 0, pointerX: 0, pointerY: 0 };
+  const target = { scroll: 0, scrollY: 0, maxScroll: 1, scrollVelocity: 0, pointerX: 0, pointerY: 0 };
+  const current = { scroll: 0, scrollY: 0, maxScroll: 1, scrollVelocity: 0, pointerX: 0, pointerY: 0 };
   let previousScrollY = window.scrollY;
   let lastScrollTime = performance.now();
   let renderRequest = null;
@@ -19,7 +19,9 @@ export function createScrollState({ root, reducedMotion, finePointer }) {
     const now = performance.now();
     const delta = Math.max(1, now - lastScrollTime);
     const velocity = ((window.scrollY - previousScrollY) / delta) * 16.67;
-    target.scroll = clamp(window.scrollY / maxScroll, 0, 1);
+    target.maxScroll = maxScroll;
+    target.scrollY = Math.max(0, window.scrollY);
+    target.scroll = clamp(target.scrollY / maxScroll, 0, 1);
     target.scrollVelocity = clamp(velocity, -2.5, 2.5);
     previousScrollY = window.scrollY;
     lastScrollTime = now;
@@ -59,7 +61,9 @@ export function createScrollState({ root, reducedMotion, finePointer }) {
     setRenderRequest(callback) { renderRequest = callback; },
     step(deltaSeconds) {
       const motion = reducedMotion.matches ? 0 : 1;
-      current.scroll = damp(current.scroll, target.scroll, 7, deltaSeconds);
+      current.maxScroll = target.maxScroll;
+      current.scrollY = damp(current.scrollY, target.scrollY, 8, deltaSeconds);
+      current.scroll = clamp(current.scrollY / Math.max(1, current.maxScroll), 0, 1);
       current.pointerX = damp(current.pointerX, target.pointerX * motion, 5, deltaSeconds);
       current.pointerY = damp(current.pointerY, target.pointerY * motion, 5, deltaSeconds);
       current.scrollVelocity = damp(current.scrollVelocity, target.scrollVelocity * motion, 9, deltaSeconds);

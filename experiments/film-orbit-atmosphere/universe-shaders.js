@@ -4,7 +4,7 @@ export const particleVertexShader = /* glsl */ `
   uniform float uScrollVelocity;
   uniform float uMotion;
   uniform float uPixelRatio;
-  uniform vec2 uPointer;
+
 
   attribute float aSize;
   attribute float aDepth;
@@ -45,7 +45,7 @@ export const particleFragmentShader = /* glsl */ `
   uniform vec3 uFogColor;
   uniform float uFogNear;
   uniform float uFogFar;
-  uniform float uMotion;
+  uniform float uMotion; uniform vec3 uParticleTint; uniform float uParticleIntensity;
 
   varying vec3 vColor;
   varying float vDepth;
@@ -61,7 +61,7 @@ export const particleFragmentShader = /* glsl */ `
     float depthBrightness = mix(0.35, 1.0, smoothstep(0.0, 0.9, vDepth));
     float fog = 1.0 - smoothstep(uFogNear, uFogFar, (1.0 - vDepth) * 92.0);
     float pulse = mix(0.92, 1.08, vTwinkle) * (0.86 + uMotion * 0.14);
-    vec3 color = vColor * depthBrightness * pulse * (0.65 + vEmissive * 0.75);
+    vec3 tinted = vColor * mix(vec3(1.0), uParticleTint, 0.42); vec3 color = mix(uFogColor, tinted, 0.55 + fog * 0.45) * depthBrightness * pulse * (0.65 + vEmissive * 0.75) * uParticleIntensity;
     float alpha = softDisc * (0.12 + vDepth * 0.66) * fog;
     gl_FragColor = vec4(color, alpha);
   }

@@ -98,7 +98,7 @@ export function createParticleField({ quality }) {
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 }, uScroll: { value: 0 }, uScrollVelocity: { value: 0 }, uMotion: { value: quality.reducedMotion ? 0 : 1 },
-      uPixelRatio: { value: 1 }, uPointer: { value: new THREE.Vector2() }, uFogColor: { value: new THREE.Color(0x030915) },
+      uPixelRatio: { value: 1 }, uParticleTint: { value: new THREE.Color(0x8be5ff) }, uParticleIntensity: { value: 1 }, uFogColor: { value: new THREE.Color(0x030915) },
       uFogNear: { value: 16 }, uFogFar: { value: 90 },
     },
     vertexShader: particleVertexShader,
@@ -115,11 +115,11 @@ export function createParticleField({ quality }) {
   return { points, geometry, material };
 }
 
-export function updateParticleField(field, { elapsed, input, pixelRatio }) {
+export function updateParticleField(field, { elapsed, input, pixelRatio, visual }) {
   const { material } = field;
   material.uniforms.uTime.value = elapsed;
   material.uniforms.uScroll.value = clamp(input.current.scroll, 0, 1);
   material.uniforms.uScrollVelocity.value = clamp(input.current.scrollVelocity, -2.5, 2.5);
-  material.uniforms.uPointer.value.set(input.current.pointerX, input.current.pointerY);
+  material.uniforms.uParticleTint.value.set(visual.particleTint); material.uniforms.uParticleIntensity.value = visual.particleIntensity; material.uniforms.uFogColor.value.set(visual.fogColor); material.uniforms.uFogNear.value = visual.fogNear; material.uniforms.uFogFar.value = visual.fogFar;
   material.uniforms.uPixelRatio.value = pixelRatio;
 }
