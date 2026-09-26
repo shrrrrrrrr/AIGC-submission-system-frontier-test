@@ -1,0 +1,15 @@
+{
+  "name": "film-orbit-atmosphere",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite-render4.config.mjs",
+    "build": "vite build --config vite-render4.config.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "vite": "7.3.6"
+  }
+}

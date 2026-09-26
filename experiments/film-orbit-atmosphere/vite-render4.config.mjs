@@ -4,6 +4,7 @@ export default defineConfig({
   root: '.',
   base: './',
   server: { port: 5190 },
+  build: { rollupOptions: { input: 'universe-entry.html' } },
   plugins: [{
     name: 'universe-root-entry',
     configureServer(server) {
