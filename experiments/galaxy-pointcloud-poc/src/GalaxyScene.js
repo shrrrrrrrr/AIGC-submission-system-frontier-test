@@ -36,7 +36,7 @@ export class GalaxyScene {
     this.pointerCurrent = new THREE.Vector2();
     this.progress = 0;
     this.progressTarget = 0;
-    this.params = { mode: 'hybrid', residual: 0.35, depthStrength: 1, thickness: 1, parallax: 1, starSize: 1, nebulaSize: 1, nebulaOpacity: 0.62, bloom: true, bloomStrength: 0.42, pointDensity: 1, projectionScale: 1000 };
+    this.params = { mode: 'hybrid', residual: 0.35, depthStrength: 1, thickness: 1, parallax: 1, starSize: 1, nebulaSize: 1, nebulaOpacity: 0.62, pointDensity: 1, bloom: true, bloomStrength: 0.42, projectionScale: 1000 };
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.time = 0;
     this.lastFrame = performance.now();
@@ -69,7 +69,7 @@ export class GalaxyScene {
     this.scene.add(this.residual);
     this.composer = new EffectComposer(this.renderer);
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.params.bloomStrength, 0.42, 0.88);
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.params.bloomStrength, 0.42, 1.0);
     this.outputPass = new OutputPass();
     this.composer.addPass(this.renderPass);
     this.composer.addPass(this.bloomPass);

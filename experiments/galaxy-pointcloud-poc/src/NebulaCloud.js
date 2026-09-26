@@ -27,7 +27,7 @@ export class NebulaCloud {
     geometry.setAttribute('aDensity', new THREE.BufferAttribute(density, 1));
     geometry.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
     const material = new THREE.ShaderMaterial({
-      uniforms: { uProjectionScale: { value: 1000 }, uTime: { value: 0 }, uDepthStrength: { value: 1 }, uSize: { value: 1 }, uThickness: { value: 1 }, uDensity: { value: 1 }, uOpacity: { value: 0.62 }, uPointDensity: { value: 1 } },
+      uniforms: { uTime: { value: 0 }, uDepthStrength: { value: 1 }, uSize: { value: 1 }, uProjectionScale: { value: 1000 }, uThickness: { value: 1 }, uOpacity: { value: 0.62 }, uPointDensity: { value: 1 } },
       vertexShader: nebulaVertex,
       fragmentShader: nebulaFragment,
       transparent: true,
@@ -41,12 +41,11 @@ export class NebulaCloud {
     this.geometry = geometry;
   }
   update(time, params) {
-    this.material.uniforms.uProjectionScale.value = params.projectionScale;
     this.material.uniforms.uTime.value = time;
     this.material.uniforms.uDepthStrength.value = params.depthStrength;
     this.material.uniforms.uSize.value = params.nebulaSize;
+    this.material.uniforms.uProjectionScale.value = params.projectionScale;
     this.material.uniforms.uThickness.value = params.thickness;
-    this.material.uniforms.uDensity.value = params.nebulaOpacity;
     this.material.uniforms.uOpacity.value = params.nebulaOpacity;
     this.material.uniforms.uPointDensity.value = params.pointDensity;
     this.points.visible = params.mode !== 'original';

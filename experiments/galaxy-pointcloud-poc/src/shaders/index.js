@@ -15,8 +15,7 @@ void main() {
   vec3 p = position;
   p.z = -22.0 + (position.z + 22.0) * uDepthStrength;
   float depth = max(0.0, -p.z);
-  float drift = sin(uTime * 0.18 + aSeed * 6.2831) * 0.018 * uDepthStrength;
-  p.x += drift * smoothstep(8.0, 65.0, depth);
+  p.x += sin(uTime * 0.18 + aSeed * 6.2831) * 0.018 * uDepthStrength * smoothstep(8.0, 65.0, depth);
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_PointSize = clamp(aSize * uSize * uProjectionScale / max(1.0, -mv.z), 0.7, 14.0);
   gl_Position = projectionMatrix * mv;
@@ -28,7 +27,6 @@ void main() {
 `;
 export const starFragment = `
 uniform float uTime;
-uniform float uDepthStrength;
 varying vec3 vColor;
 varying float vEmissive;
 varying float vDepth;
@@ -53,7 +51,6 @@ uniform float uDepthStrength;
 uniform float uSize;
 uniform float uProjectionScale;
 uniform float uThickness;
-uniform float uDensity;
 attribute float aSize;
 attribute vec3 aColor;
 attribute float aAlpha;
@@ -62,13 +59,12 @@ attribute float aSeed;
 varying vec3 vColor;
 varying float vAlpha;
 varying float vDensity;
-varying float vSeed;
 varying float vDepth;
+varying float vSeed;
 void main() {
-  vec3 p = position;
   float centerZ = -18.0 - aDensity * 7.0;
+  vec3 p = position;
   p.z = -22.0 + (centerZ + 22.0 + (position.z - centerZ) * uThickness) * uDepthStrength;
-  float depth = max(0.0, -p.z);
   p.z += sin(uTime * 0.06 + aSeed * 31.0) * 0.08 * uDepthStrength * uThickness;
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_PointSize = clamp(aSize * uSize * 2.8 * uProjectionScale / max(1.0, -mv.z), 0.7, 16.0);
@@ -76,8 +72,8 @@ void main() {
   vColor = aColor;
   vAlpha = aAlpha;
   vDensity = aDensity;
-  vSeed = aSeed;
   vDepth = clamp((-mv.z - 8.0) / 65.0, 0.0, 1.0);
+  vSeed = aSeed;
 }
 `;
 export const nebulaFragment = `
@@ -86,13 +82,13 @@ uniform float uPointDensity;
 varying vec3 vColor;
 varying float vAlpha;
 varying float vDensity;
-varying float vSeed;
 varying float vDepth;
+varying float vSeed;
 void main() {
+  if (vSeed > uPointDensity) discard;
   vec2 p = gl_PointCoord - 0.5;
   float d = length(p) * 2.0;
   if (d > 1.0) discard;
-  if (vSeed > uPointDensity) discard;
   float soft = pow(max(0.0, 1.0 - d), 2.1);
   float depthFade = mix(0.72, 0.18, vDepth);
   float densityLight = 0.42 + vDensity * 0.8;

@@ -4,7 +4,7 @@ const scene = await GalaxyScene.create(document.querySelector('#galaxy-canvas'))
 const $ = (id) => document.getElementById(id);
 const stats = $('stats');
 const bindings = [
-  ['residual', 'residual'], ['depth', 'depthStrength'], ['thickness', 'thickness'], ['parallax', 'parallax'], ['star-size', 'starSize'], ['nebula-size', 'nebulaSize'], ['nebula-opacity', 'nebulaOpacity'], ['point-density', 'pointDensity'], ['progress', 'progress'], ['bloom-strength', 'bloomStrength']
+  ['residual', 'residual'], ['depth', 'depthStrength'], ['point-density', 'pointDensity'], ['thickness', 'thickness'], ['parallax', 'parallax'], ['star-size', 'starSize'], ['nebula-size', 'nebulaSize'], ['nebula-opacity', 'nebulaOpacity'], ['progress', 'progress'], ['bloom-strength', 'bloomStrength']
 ];
 const format = (v) => Number(v).toFixed(2);
 for (const [id, key] of bindings) {
@@ -21,11 +21,9 @@ for (const button of document.querySelectorAll('[data-mode]')) {
     scene.updateParams({ mode: button.dataset.mode });
   });
 }
-let scrollTarget = 0;
 const updateScrollTarget = () => {
   const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-  scrollTarget = Math.min(1, Math.max(0, window.scrollY / max));
-  scene.setProgress(scrollTarget);
+  scene.setProgress(Math.min(1, Math.max(0, window.scrollY / max)));
 };
 window.addEventListener('scroll', updateScrollTarget, { passive: true });
 window.addEventListener('pointermove', (event) => scene.setPointer((event.clientX / window.innerWidth) * 2 - 1, 1 - (event.clientY / window.innerHeight) * 2), { passive: true });
