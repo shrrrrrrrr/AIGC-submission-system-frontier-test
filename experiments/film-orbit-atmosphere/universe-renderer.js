@@ -162,7 +162,7 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
       backgroundMaterial.map = texture;
       backgroundMaterial.needsUpdate = true;
     }
-    applyCamera(visual, motion);
+    applyCamera(descriptor, motion);
     updateParticleField(field, { elapsed, input, pixelRatio, visual: {
       fogColor: descriptor.fogColorValue,
       fogNear: descriptor.fogNear,
