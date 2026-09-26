@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galaxy Point Cloud PoC</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <canvas id="galaxy-canvas" aria-label="银河三维点云"></canvas>
+    <section class="hud">
+      <div class="eyebrow">PHASE 3.5A / IMAGE-DERIVED GALAXY</div>
+      <h1>银河点云重构</h1>
+      <p>从单张摄影图像离线提取恒星与星云结构，再以受限视差观察它的艺术化空间厚度。</p>
+      <div class="mode-row" role="group" aria-label="显示模式">
+        <button data-mode="hybrid" class="mode active">Hybrid</button>
+        <button data-mode="pointcloud" class="mode">Point Cloud</button>
+        <button data-mode="original" class="mode">Original</button>
+      </div>
+      <div class="controls">
+        <label>Residual <output id="residual-value">0.35</output><input id="residual" type="range" min="0" max="1" step="0.01" value="0.35"></label>
+        <label>Depth strength <output id="depth-value">1.00</output><input id="depth" type="range" min="0" max="1.8" step="0.01" value="1"></label>
+        <label>Nebula thickness <output id="thickness-value">1.00</output><input id="thickness" type="range" min="0.2" max="2" step="0.01" value="1"></label>
+        <label>Camera parallax <output id="parallax-value">1.00</output><input id="parallax" type="range" min="0" max="2" step="0.01" value="1"></label>
+        <label>Star size <output id="star-size-value">1.00</output><input id="star-size" type="range" min="0.4" max="2" step="0.01" value="1"></label>
+        <label>Nebula size <output id="nebula-size-value">1.00</output><input id="nebula-size" type="range" min="0.4" max="2" step="0.01" value="1"></label>
+        <label>Nebula opacity <output id="nebula-opacity-value">0.62</output><input id="nebula-opacity" type="range" min="0.1" max="1" step="0.01" value="0.62"></label>
+        <label>Point density <output id="point-density-value">1.00</output><input id="point-density" type="range" min="0.25" max="1" step="0.01" value="1"></label>
+        <label>Camera progress <output id="progress-value">0.00</output><input id="progress" type="range" min="0" max="1" step="0.001" value="0"></label>
+        <label class="check"><span>Bloom</span><input id="bloom" type="checkbox" checked></label>
+        <label>Bloom strength <output id="bloom-value">0.42</output><input id="bloom-strength" type="range" min="0" max="1" step="0.01" value="0.42"></label>
+      </div>
+      <div class="stats" id="stats">Loading point cloud…</div>
+    </section>
+    <div class="scroll-hint">Scroll or drag the camera progress slider · move the pointer to explore depth</div>
+  </main>
+  <div class="scroll-space" aria-hidden="true"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

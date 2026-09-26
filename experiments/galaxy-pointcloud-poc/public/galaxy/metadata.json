@@ -1,0 +1,49 @@
+{
+  "source": {
+    "file": "source.png",
+    "width": 501,
+    "height": 750,
+    "aspect": 0.668
+  },
+  "world": {
+    "width": 26.0,
+    "height": 38.92215568862275
+  },
+  "seed": 20260927,
+  "stars": {
+    "file": "stars.bin",
+    "count": 2322,
+    "stride": 8,
+    "fields": [
+      "x",
+      "y",
+      "z",
+      "size",
+      "r",
+      "g",
+      "b",
+      "emissive"
+    ]
+  },
+  "nebula": {
+    "file": "nebula.bin",
+    "count": 80000,
+    "stride": 10,
+    "fields": [
+      "x",
+      "y",
+      "z",
+      "size",
+      "r",
+      "g",
+      "b",
+      "alpha",
+      "density",
+      "seed"
+    ],
+    "thickness": 5.0
+  },
+  "residual": {
+    "file": "residual.webp"
+  }
+}
