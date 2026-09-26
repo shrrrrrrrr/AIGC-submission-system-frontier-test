@@ -27,3 +27,20 @@ export const sceneDescriptors = [
 ];
 
 export const descriptorById = new Map(sceneDescriptors.map((item) => [item.id, item]));
+const lighting = [
+  ['#2ce4ff', '#6d5bff', 0.9, 0.035, 0.44, 1.0],
+  ['#3adfff', '#655dff', 0.95, 0.038, 0.48, 1.01],
+  ['#4ecbff', '#5278ff', 0.84, 0.032, 0.42, 0.99],
+  ['#5fe6e8', '#9a63ff', 0.96, 0.043, 0.50, 1.02],
+  ['#65d7ff', '#b36bff', 1.02, 0.047, 0.54, 1.03],
+  ['#45e5ff', '#647cff', 0.9, 0.036, 0.46, 1.0],
+  ['#79dcff', '#ef75d6', 1.06, 0.05, 0.56, 1.04],
+  ['#55d9ff', '#b47aff', 0.96, 0.042, 0.5, 1.02],
+  ['#44e7ff', '#9b70ff', 0.92, 0.037, 0.47, 1.0],
+  ['#56efff', '#806cff', 1.04, 0.046, 0.52, 1.03],
+];
+
+sceneDescriptors.forEach((item, index) => {
+  const [lightTintA, lightTintB, lightIntensity, atmosphereDensity, bloomStrength, exposure] = lighting[index];
+  Object.assign(item, { lightTintA, lightTintB, lightIntensity, atmosphereDensity, bloomStrength, exposure });
+});

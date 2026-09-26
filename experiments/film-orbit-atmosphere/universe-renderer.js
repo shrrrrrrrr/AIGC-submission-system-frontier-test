@@ -3,6 +3,8 @@ import { createParticleField, getParticleQuality, updateParticleField } from './
 import { sceneDescriptors } from './universe-descriptors.js';
 import { createSceneTimeline } from './universe-timeline.js';
 import { createTransitionPass } from './universe-transition.js';
+import { createUniverseLighting } from './universe-lighting.js';
+import { createUniversePost } from './universe-post.js';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const lerp = (a, b, progress) => a + (b - a) * progress;
@@ -14,6 +16,8 @@ function prepareDescriptors() {
     particleTintValue: new THREE.Color(item.particleTint),
     atmosphereColorAValue: new THREE.Color(item.atmosphereColorA),
     atmosphereColorBValue: new THREE.Color(item.atmosphereColorB),
+    lightTintAValue: new THREE.Color(item.lightTintA),
+    lightTintBValue: new THREE.Color(item.lightTintB),
   }));
 }
 
@@ -76,6 +80,8 @@ function blendVisualState(a, b, progress, state) {
   state.fogNear = lerp(a.fogNear, b.fogNear, progress);
   state.fogFar = lerp(a.fogFar, b.fogFar, progress);
   state.atmosphereStrength = lerp(a.atmosphereStrength, b.atmosphereStrength, progress);
+  state.bloomStrength = lerp(a.bloomStrength, b.bloomStrength, progress);
+  state.exposure = lerp(a.exposure, b.exposure, progress);
 }
 
 export function createUniverseRenderer({ sceneRoot, sections, input, reducedMotion }) {
@@ -94,6 +100,8 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
   renderer.debug.checkShaderErrors = true;
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality.dpr));
 
   const prepared = prepareDescriptors();
@@ -107,6 +115,8 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
   const fieldGroup = new THREE.Group();
   const field = createParticleField({ quality });
   fieldGroup.add(field.points);
+  const lighting = createUniverseLighting();
+  fieldGroup.add(lighting.group);
   particleScene.add(fieldGroup);
 
   const backgroundScene = new THREE.Scene();
@@ -115,13 +125,15 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
   const backgroundQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), backgroundMaterial);
   backgroundScene.add(backgroundQuad);
 
-  const targetOptions = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, depthBuffer: true, stencilBuffer: false };
+  const hdr = !quality.mobile && !quality.reducedMotion;
+  const targetOptions = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: hdr ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: true, stencilBuffer: false };
   const targetA = new THREE.WebGLRenderTarget(1, 1, targetOptions);
   const targetB = new THREE.WebGLRenderTarget(1, 1, targetOptions);
   targetA.texture.name = 'universe-scene-a';
   targetB.texture.name = 'universe-scene-b';
 
   const transition = createTransitionPass();
+  const post = createUniversePost(renderer, transition, hdr);
   const visual = {
     cameraPosition: { x: 0, y: 0, z: 26 },
     cameraTarget: { x: 0, y: 0, z: -20 },
@@ -131,6 +143,8 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
     fogNear: 16,
     fogFar: 90,
     atmosphereStrength: 1,
+    bloomStrength: 0.5,
+    exposure: 1,
   };
   const pointer = { x: 0, y: 0 };
   const cameraEndpoint = { x: 0, y: 0, z: 26 };
@@ -163,6 +177,7 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
       backgroundMaterial.needsUpdate = true;
     }
     applyCamera(descriptor, motion);
+    lighting.update(descriptor, elapsed, motion);
     updateParticleField(field, { elapsed, input, pixelRatio, visual: {
       fogColor: descriptor.fogColorValue,
       fogNear: descriptor.fogNear,
@@ -192,6 +207,7 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
     const targetHeight = Math.max(1, Math.round(height * pixelRatio));
     targetA.setSize(targetWidth, targetHeight);
     targetB.setSize(targetWidth, targetHeight);
+    post.resize(width, height, pixelRatio, quality.mobile, reducedMotion.matches);
     timeline.rebuild();
     requestRender();
   };
@@ -239,7 +255,7 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
 
     renderer.setRenderTarget(null);
     renderer.setClearColor(0x000000, 0);
-    renderer.render(transition.scene, transition.camera);
+    post.render(visual, deltaSeconds, reducedMotion.matches);
   };
 
   const tick = (now) => {
@@ -266,10 +282,15 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
     requestRender();
   };
 
+  const onReducedMotionChange = () => {
+    post.resize(width, height, pixelRatio, quality.mobile, reducedMotion.matches);
+    requestRender();
+  };
+
   input.setRenderRequest(requestRender);
   addEventListener('resize', resize, { passive: true });
   addEventListener('visibilitychange', onVisibility);
-  reducedMotion.addEventListener('change', requestRender);
+  reducedMotion.addEventListener('change', onReducedMotionChange);
   if ('ResizeObserver' in window) {
     layoutObserver = new ResizeObserver(onLayoutChange);
     layoutObserver.observe(document.querySelector('main'));
@@ -277,7 +298,7 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
   textureCache.ensure(prepared[0].textureUrl);
   textureCache.ensure(prepared[1].textureUrl);
   resize();
-  if (import.meta.env?.DEV) window.__universeDebug = { timeline, targetA, targetB, transition, get progress() { return timeline.resolve(input.current.scrollY); } };
+  if (import.meta.env?.DEV) window.__universeDebug = { timeline, targetA, targetB, transition, post, renderer, lighting, get progress() { return timeline.resolve(input.current.scrollY); } };
   requestRender();
 
   return {
@@ -293,7 +314,7 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
       if (frame) cancelAnimationFrame(frame);
       removeEventListener('resize', resize);
       removeEventListener('visibilitychange', onVisibility);
-      reducedMotion.removeEventListener('change', requestRender);
+      reducedMotion.removeEventListener('change', onReducedMotionChange);
       layoutObserver?.disconnect();
       input.dispose();
       targetA.dispose();
@@ -304,6 +325,8 @@ export function createUniverseRenderer({ sceneRoot, sections, input, reducedMoti
       transition.material.dispose();
       field.geometry.dispose();
       field.material.dispose();
+      lighting.dispose();
+      post.dispose();
       textureCache.dispose();
       renderer.dispose();
     },
