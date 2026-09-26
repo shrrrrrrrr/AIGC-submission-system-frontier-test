@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="base" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#0d2850"/><stop offset=".48" stop-color="#050f27"/><stop offset="1" stop-color="#01040d"/></radialGradient>
+    <radialGradient id="cyan" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#38c9ff" stop-opacity=".34"/><stop offset=".45" stop-color="#1762a5" stop-opacity=".15"/><stop offset="1" stop-color="#071329" stop-opacity="0"/></radialGradient>
+    <radialGradient id="violet" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#6b51ff" stop-opacity=".25"/><stop offset=".5" stop-color="#2f2e8a" stop-opacity=".12"/><stop offset="1" stop-color="#050b1b" stop-opacity="0"/></radialGradient>
+    <filter id="cloud" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".007 .014" numOctaves="4" seed="28"/><feColorMatrix values=".1 0 0 0 .05 0 .35 0 0 .22 0 0 .75 0 .55 0 0 0 .55 0"/><feGaussianBlur stdDeviation="24"/></filter>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#base)"/>
+  <ellipse cx="430" cy="260" rx="680" ry="430" fill="url(#cyan)" transform="rotate(-18 430 260)"/>
+  <ellipse cx="1520" cy="820" rx="760" ry="460" fill="url(#violet)" transform="rotate(14 1520 820)"/>
+  <rect x="-100" y="-80" width="2120" height="1240" opacity=".46" filter="url(#cloud)"/>
+  <g fill="#d8f5ff" filter="url(#glow)" opacity=".85">
+    <circle cx="172" cy="155" r="1.8"/><circle cx="406" cy="85" r="1.1"/><circle cx="691" cy="206" r="1.5"/><circle cx="918" cy="116" r="1.1"/><circle cx="1248" cy="210" r="1.8"/><circle cx="1662" cy="105" r="1.2"/>
+    <circle cx="260" cy="680" r="1.2"/><circle cx="570" cy="860" r="1.8"/><circle cx="815" cy="710" r="1"/><circle cx="1090" cy="930" r="1.4"/><circle cx="1420" cy="670" r="1.1"/><circle cx="1770" cy="840" r="1.9"/>
+  </g>
+</svg>

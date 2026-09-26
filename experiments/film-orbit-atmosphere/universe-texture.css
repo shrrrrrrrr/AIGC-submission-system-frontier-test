@@ -1,0 +1,6 @@
+.universe-scene .space-image{display:none}
+.universe-image-plane{position:absolute;inset:-5%;z-index:0;width:110%;height:110%;display:block;opacity:.92;pointer-events:none;transform:translate3d(calc(var(--universe-px) * -9px),calc(var(--universe-py) * -7px),0) rotateX(calc(var(--universe-py) * -1.2deg)) rotateY(calc(var(--universe-px) * 1.4deg));transition:transform 1.2s cubic-bezier(.23,1,.32,1);mix-blend-mode:screen}
+.universe-scene .nebula-layer{z-index:1;opacity:.32}
+.universe-scene .universe-particles{z-index:2;position:absolute}
+.universe-scene .vignette{z-index:3}
+@media(prefers-reduced-motion:reduce){.universe-image-plane{transition:none}}
