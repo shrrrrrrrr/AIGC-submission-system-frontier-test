@@ -4,6 +4,7 @@ const scene = await GalaxyScene.create(document.querySelector('#galaxy-canvas'))
 const $ = (id) => document.getElementById(id);
 const stats = $('stats');
 const loading = $('scene-loading');
+const sceneCurrent = $('scene-current');
 const bindings = [
   ['progress', 'progress'], ['residual', 'residual'], ['depth', 'depthStrength'], ['thickness', 'thickness'], ['parallax', 'parallax'], ['morph', 'morph'],
   ['star-size', 'starSize'], ['nebula-size', 'nebulaSize'], ['point-density', 'pointDensity'], ['flight-speed', 'flightSpeed'], ['star-intensity', 'starIntensity'],
@@ -26,6 +27,7 @@ function syncUi() {
   $('foreground-dust').checked = params.foregroundVisibility > 0;
   $('residual-backdrop').checked = params.residualVisible > 0;
   for (const button of document.querySelectorAll('[data-asset]')) button.classList.toggle('active', button.dataset.asset === scene.assetId);
+  sceneCurrent.textContent = 'Active: ' + (scene.assetId ? scene.assetId.replace('galaxy-', 'Galaxy ').toUpperCase() : 'Galaxy A') + ' · press 1–4 to switch';
 }
 
 for (const [id, key] of bindings) {
@@ -43,19 +45,33 @@ for (const button of document.querySelectorAll('[data-mode]')) {
   button.addEventListener('click', () => { scene.updateParams({ mode: button.dataset.mode }); document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button)); });
 }
 for (const button of document.querySelectorAll('[data-asset]')) {
-  button.addEventListener('click', () => scene.switchAsset(button.dataset.asset));
+  button.addEventListener('click', () => {
+    scene.switchAsset(button.dataset.asset);
+  });
 }
+window.addEventListener('keydown', (event) => {
+  if (event.target.matches('input, textarea, select')) return;
+  const assetId = { '1': 'galaxy-a', '2': 'galaxy-b', '3': 'galaxy-c', '4': 'galaxy-d' }[event.key];
+  if (!assetId) return;
+  document.querySelector('[data-asset="' + assetId + '"]')?.click();
+});
 for (const [id, layer] of [['star-bright','bright'], ['star-medium','medium'], ['star-dust','dust']]) $(id).addEventListener('change', (event) => scene.updateParams({ starVisibility: { [layer]: event.target.checked ? 1 : 0 } }));
 for (const [id, layer] of [['nebula-front','front'], ['nebula-mid','mid'], ['nebula-back','back']]) $(id).addEventListener('change', (event) => scene.updateParams({ nebulaVisibility: { [layer]: event.target.checked ? 1 : 0 } }));
 $('foreground-dust').addEventListener('change', (event) => scene.updateParams({ foregroundVisibility: event.target.checked ? 1 : 0 }));
 $('residual-backdrop').addEventListener('change', (event) => scene.updateParams({ residualVisible: event.target.checked ? 1 : 0 }));
 
 scene.onStateChange = (state) => {
-  loading.hidden = !state.loading;
-  if (state.loading) loading.textContent = `Loading ${state.entry?.displayName || state.assetId}…`;
-  else if (state.error) loading.textContent = `Unable to load ${state.assetId}`;
-  else loading.textContent = `${state.entry?.displayName || state.assetId} ready`;
-  syncUi();
+  loading.hidden = !state.loading && !state.error;
+  if (state.loading) {
+    loading.textContent = `Loading ${state.entry?.displayName || state.assetId}…`;
+    sceneCurrent.textContent = `Loading: ${state.entry?.displayName || state.assetId}…`;
+  } else if (state.error) {
+    loading.textContent = `Unable to load ${state.assetId}`;
+    sceneCurrent.textContent = `Unable to load ${state.assetId}`;
+  } else {
+    loading.textContent = `${state.entry?.displayName || state.assetId} ready`;
+  }
+  if (!state.loading && !state.error) syncUi();
 };
 
 const updateScrollTarget = () => {

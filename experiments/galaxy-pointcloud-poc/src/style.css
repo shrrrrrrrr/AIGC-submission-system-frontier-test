@@ -14,6 +14,8 @@ p { margin:0 0 13px; color:#b9b0cc; font-size:12px; line-height:1.55; }
 .scene-row { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
 .scene-button { border:1px solid rgba(224,210,255,.25); color:#d4c8e8; background:rgba(255,255,255,.05); padding:7px 4px; border-radius:8px; cursor:pointer; font-size:10px; }
 .scene-button.active { background:#9c7bd6; color:#160b2b; border-color:#c5a7ff; }
+.scene-button kbd { display:inline-block; min-width:15px; margin-right:2px; padding:1px 3px; border:1px solid currentColor; border-radius:4px; font:600 9px/1 ui-monospace,SFMono-Regular,monospace; opacity:.75; }
+.scene-current { margin-top:7px; color:#a99bbd; font:10px/1.35 ui-monospace,SFMono-Regular,monospace; }
 .mode-row { display:flex; gap:6px; flex-wrap:wrap; }
 .mode { border:1px solid rgba(224,210,255,.28); color:#d4c8e8; background:rgba(255,255,255,.06); padding:7px 10px; border-radius:999px; cursor:pointer; font-size:11px; }
 .mode.active { background:#c5a7ff; color:#160b2b; border-color:#c5a7ff; }

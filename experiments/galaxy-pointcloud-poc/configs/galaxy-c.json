@@ -3,7 +3,7 @@
   "displayName": "Galaxy C",
   "sourceImage": "source.png",
   "worldWidth": 26.0,
-  "thickness": 5.6,
+  "thickness": 5.0,
   "counts": {
     "stars": 6000,
     "mediumStars": 26000,
@@ -14,31 +14,31 @@
     "foreground": 6500
   },
   "camera": {
-    "startZ": 64,
-    "endZ": 14,
+    "startZ": 58,
+    "endZ": 12,
     "targetZStart": -22,
-    "targetZEnd": -36,
-    "focalX": 0.7,
-    "focalY": -1.2,
-    "yawDegrees": 7,
+    "targetZEnd": -35,
+    "focalX": 0,
+    "focalY": 0,
+    "yawDegrees": 8,
     "pitchDegrees": 5
   },
   "visual": {
-    "depthStrength": 1.28,
-    "thickness": 1.55,
-    "parallax": 1.35,
-    "starSize": 1.02,
-    "nebulaSize": 0.72,
-    "pointDensity": 0.92,
-    "flightSpeed": 1.1,
-    "starIntensity": 1.25,
-    "foregroundCleanup": 0.9,
-    "foregroundSoftness": 1.7,
-    "bloomStrength": 0.38,
+    "depthStrength": 1.57,
+    "thickness": 2.0,
+    "parallax": 2.0,
+    "starSize": 1.24,
+    "nebulaSize": 0.48,
+    "pointDensity": 0.83,
+    "flightSpeed": 2.0,
+    "starIntensity": 1.5,
+    "foregroundCleanup": 1.0,
+    "foregroundSoftness": 2.0,
+    "bloomStrength": 0.42,
     "nebulaIntensity": {
-      "front": 0.52,
+      "front": 0.55,
       "mid": 1.0,
-      "back": 0.48
+      "back": 0.52
     }
   }
 }

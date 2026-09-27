@@ -93,7 +93,7 @@
           "seed"
         ],
         "bytes": 640000,
-        "sha256": "7f826d396e725d3dde851964b715b116c3c28aeaf75fd318b0f4dfd990562802"
+        "sha256": "d9c7a684ba4dc9ea0f09a50e0c8de890e33bac348193df264463b0d20f0ee4f6"
       },
       "mid": {
         "file": "nebula-mid.bin",
@@ -112,7 +112,7 @@
           "seed"
         ],
         "bytes": 2600000,
-        "sha256": "1581a5d90f4d4a00b37c31aa197516d3069267e3a4f344a8464fdf53df4a972f"
+        "sha256": "66f3b87c04b517d70a6bc37166be0ea8c4cde41a0309240211eab04e05a68ab7"
       },
       "back": {
         "file": "nebula-back.bin",
@@ -131,13 +131,13 @@
           "seed"
         ],
         "bytes": 960000,
-        "sha256": "e4cc6ef8b208b74edf30ada497fede8b1302f667013b006d7d4edcd1f699ffc9"
+        "sha256": "27ac973444c3e8ae1b7b4b7cde9bb06ada706c4a8d96aeed22e6ced573975335"
       }
     },
     "file": "nebula.bin",
     "count": 105000,
     "stride": 10,
-    "thickness": 4.6
+    "thickness": 5.0
   },
   "foreground": {
     "file": "foreground-dust.bin",
@@ -165,7 +165,7 @@
     "displayName": "Galaxy D",
     "sourceImage": "source.png",
     "worldWidth": 26.0,
-    "thickness": 4.6,
+    "thickness": 5.0,
     "counts": {
       "stars": 6000,
       "mediumStars": 26000,
@@ -176,31 +176,31 @@
       "foreground": 6000
     },
     "camera": {
-      "startZ": 62,
-      "endZ": 15,
-      "targetZStart": -23,
+      "startZ": 58,
+      "endZ": 12,
+      "targetZStart": -22,
       "targetZEnd": -35,
-      "focalX": 0.2,
-      "focalY": 0.0,
-      "yawDegrees": 6,
-      "pitchDegrees": 4
+      "focalX": 0,
+      "focalY": 0,
+      "yawDegrees": 8,
+      "pitchDegrees": 5
     },
     "visual": {
-      "depthStrength": 1.12,
-      "thickness": 1.2,
-      "parallax": 1.0,
-      "starSize": 0.92,
-      "nebulaSize": 0.62,
-      "pointDensity": 0.88,
-      "flightSpeed": 0.95,
-      "starIntensity": 1.05,
-      "foregroundCleanup": 0.95,
-      "foregroundSoftness": 1.9,
-      "bloomStrength": 0.28,
+      "depthStrength": 1.57,
+      "thickness": 2.0,
+      "parallax": 2.0,
+      "starSize": 1.24,
+      "nebulaSize": 0.48,
+      "pointDensity": 0.83,
+      "flightSpeed": 2.0,
+      "starIntensity": 1.5,
+      "foregroundCleanup": 1.0,
+      "foregroundSoftness": 2.0,
+      "bloomStrength": 0.42,
       "nebulaIntensity": {
-        "front": 0.42,
-        "mid": 0.82,
-        "back": 0.4
+        "front": 0.55,
+        "mid": 1.0,
+        "back": 0.52
       }
     }
   },

@@ -3,7 +3,7 @@
   "displayName": "Galaxy B",
   "sourceImage": "source.png",
   "worldWidth": 26.0,
-  "thickness": 4.2,
+  "thickness": 5.0,
   "counts": {
     "stars": 5000,
     "mediumStars": 20000,
@@ -14,31 +14,31 @@
     "foreground": 5000
   },
   "camera": {
-    "startZ": 62,
-    "endZ": 16,
-    "targetZStart": -23,
-    "targetZEnd": -34,
-    "focalX": -1.4,
-    "focalY": 0.4,
-    "yawDegrees": 7,
-    "pitchDegrees": 4
+    "startZ": 58,
+    "endZ": 12,
+    "targetZStart": -22,
+    "targetZEnd": -35,
+    "focalX": 0,
+    "focalY": 0,
+    "yawDegrees": 8,
+    "pitchDegrees": 5
   },
   "visual": {
-    "depthStrength": 1.18,
-    "thickness": 1.35,
-    "parallax": 1.2,
-    "starSize": 1.0,
-    "nebulaSize": 0.78,
-    "pointDensity": 0.9,
-    "flightSpeed": 1.2,
-    "starIntensity": 1.15,
-    "foregroundCleanup": 0.9,
-    "foregroundSoftness": 1.6,
-    "bloomStrength": 0.34,
+    "depthStrength": 1.57,
+    "thickness": 2.0,
+    "parallax": 2.0,
+    "starSize": 1.24,
+    "nebulaSize": 0.48,
+    "pointDensity": 0.83,
+    "flightSpeed": 2.0,
+    "starIntensity": 1.5,
+    "foregroundCleanup": 1.0,
+    "foregroundSoftness": 2.0,
+    "bloomStrength": 0.42,
     "nebulaIntensity": {
-      "front": 0.48,
-      "mid": 0.9,
-      "back": 0.4
+      "front": 0.55,
+      "mid": 1.0,
+      "back": 0.52
     }
   }
 }
