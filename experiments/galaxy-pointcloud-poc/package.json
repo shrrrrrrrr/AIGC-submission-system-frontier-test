@@ -2,6 +2,12 @@
   "name": "galaxy-pointcloud-poc",
   "private": true,
   "type": "module",
-  "scripts": {"dev": "vite", "build": "vite build"},
-  "dependencies": {"three": "^0.186.1", "vite": "^7.3.6"}
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "three": "^0.186.1",
+    "vite": "^7.3.6"
+  }
 }

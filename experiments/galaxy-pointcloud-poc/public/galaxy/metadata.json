@@ -1,13 +1,20 @@
 {
+  "formatVersion": 2,
+  "byteOrder": "little-endian",
+  "componentType": "float32",
+  "colorSpace": "linear-srgb",
   "source": {
     "file": "source.png",
     "width": 501,
     "height": 750,
-    "aspect": 0.668
+    "aspect": 0.668,
+    "sha256": "8ecb9cc83e31164360c4dd155da90d0ab80584d200a49cdba412465c0755fbb0"
   },
   "world": {
     "width": 26.0,
-    "height": 38.92215568862275
+    "height": 38.92215568862275,
+    "referenceZ": -22,
+    "referenceCameraZ": 28
   },
   "seed": 20260927,
   "stars": {
@@ -23,11 +30,14 @@
       "g",
       "b",
       "emissive"
-    ]
+    ],
+    "catalog": "star-catalog.csv",
+    "bytes": 74304,
+    "sha256": "8b8fd57da84c2d83ed4ab285588b73a07c64b393e480936d2bdf3fb9ad16de55"
   },
   "nebula": {
     "file": "nebula.bin",
-    "count": 80000,
+    "count": 100000,
     "stride": 10,
     "fields": [
       "x",
@@ -41,9 +51,13 @@
       "density",
       "seed"
     ],
-    "thickness": 5.0
+    "thickness": 5,
+    "bytes": 4000000,
+    "sha256": "95d4d940d6b69856ead1a8f9bc8d35678b88ee76157ad385d5cca2a048250d9e"
   },
   "residual": {
-    "file": "residual.webp"
-  }
+    "file": "residual.webp",
+    "lossless": true
+  },
+  "depthNote": "Artistic single-image reconstruction, not recovered astronomical distances."
 }
