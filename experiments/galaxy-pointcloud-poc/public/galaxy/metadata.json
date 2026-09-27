@@ -138,6 +138,23 @@
     "stride": 10,
     "thickness": 5
   },
+  "foreground": {
+    "file": "foreground-dust.bin",
+    "count": 7000,
+    "stride": 8,
+    "fields": [
+      "x",
+      "y",
+      "z",
+      "size",
+      "r",
+      "g",
+      "b",
+      "alpha"
+    ],
+    "bytes": 224000,
+    "sha256": "076f3921e0a766b21cd8a8812ab8775e1dcf66b8c745874eed84647cb62f2c1e"
+  },
   "residual": {
     "file": "residual.webp",
     "lossless": true

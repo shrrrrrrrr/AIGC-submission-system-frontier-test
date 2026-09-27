@@ -5,6 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { StarCloud } from './StarCloud.js';
 import { NebulaCloud } from './NebulaCloud.js';
+import { ForegroundDust } from './ForegroundDust.js';
 import { residualVertex, residualFragment } from './shaders/index.js';
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -29,13 +30,14 @@ export class GalaxyScene {
     this.lookTarget = new THREE.Vector3(0, 0, -22);
     this.baseCamera = new THREE.Vector3();
     this.baseTarget = new THREE.Vector3();
+    this.targetCurrent = new THREE.Vector3();
     this.pointer = new THREE.Vector2();
     this.pointerCurrent = new THREE.Vector2();
     this.progress = 0;
     this.progressTarget = 0;
     this.params = {
       mode: 'hybrid', residual: 0.35, depthStrength: 1, thickness: 1, parallax: 1,
-      starSize: 1, nebulaSize: 1, nebulaOpacity: 0.62, pointDensity: 1, bloom: true,
+      starSize: 1, nebulaSize: 1, foregroundSize: 1, nebulaOpacity: 0.62, pointDensity: 1, bloom: true,
       bloomStrength: 0.42, morph: 0, flightSpeed: 1, starIntensity: 1,
       starLayers: { bright: 1, medium: 0.8, dust: 0.42 },
       nebulaVisibility: { front: 1, mid: 1, back: 1 },
@@ -54,6 +56,9 @@ export class GalaxyScene {
     this.stars = starBuffers.map((buffer, index) => new StarCloud(new Float32Array(buffer), metadata.stars.layers[layerFiles[index]].count, layerFiles[index], metadata.stars.layers[layerFiles[index]].stride));
     this.nebula = nebulaBuffers.map((buffer, index) => new NebulaCloud(new Float32Array(buffer), metadata.nebula.layers[nebulaFiles[index]].count, nebulaFiles[index], metadata.nebula.layers[nebulaFiles[index]].stride));
     this.scene.add(...this.stars.map((cloud) => cloud.points), ...this.nebula.map((cloud) => cloud.points));
+    const foregroundBuffer = await fetch('/galaxy/foreground-dust.bin').then((r) => r.arrayBuffer());
+    this.foreground = new ForegroundDust(new Float32Array(foregroundBuffer), metadata.foreground.count, metadata.foreground.stride);
+    this.scene.add(this.foreground.points);
     const texture = await new THREE.TextureLoader().loadAsync('/galaxy/residual.webp');
     texture.colorSpace = THREE.SRGBColorSpace; texture.minFilter = THREE.LinearFilter; this.residualTexture = texture;
     const plane = new THREE.PlaneGeometry(metadata.world.width, metadata.world.height);
@@ -87,11 +92,15 @@ export class GalaxyScene {
     const flightSway = Math.sin(p * Math.PI) * 0.18;
     this.baseCamera.set(flightSway * maxYawX, Math.sin(p * Math.PI * 0.9) * maxPitchY * 0.12, cameraZ);
     this.baseTarget.set(flightSway * maxYawX * 0.25, 0, targetZ);
+    this.targetCurrent.x = damp(this.targetCurrent.x, this.baseTarget.x, 4, dt);
+    this.targetCurrent.y = damp(this.targetCurrent.y, this.baseTarget.y, 4, dt);
+    this.targetCurrent.z = damp(this.targetCurrent.z, this.baseTarget.z, 4, dt);
     const px = this.pointerCurrent.x * maxYawX * 0.55 * this.params.parallax * motion;
     const py = this.pointerCurrent.y * maxPitchY * 0.55 * this.params.parallax * motion;
     this.camera.position.set(clamp(this.baseCamera.x + px, -maxYawX, maxYawX), clamp(this.baseCamera.y + py, -maxPitchY, maxPitchY), cameraZ);
-    this.lookTarget.set(this.baseTarget.x - this.pointerCurrent.x * maxYawX * 0.12 * motion, this.baseTarget.y - this.pointerCurrent.y * maxPitchY * 0.12 * motion, targetZ);
+    this.lookTarget.set(this.targetCurrent.x - this.pointerCurrent.x * maxYawX * 0.12 * motion, this.targetCurrent.y - this.pointerCurrent.y * maxPitchY * 0.12 * motion, this.targetCurrent.z);
     this.camera.lookAt(this.lookTarget);
+    this.camera.rotation.z = Math.sin(p * Math.PI) * THREE.MathUtils.degToRad(1.2) * motion;
     this.params.pointerX = this.pointerCurrent.x; this.params.pointerY = this.pointerCurrent.y; this.params.cameraProgress = this.progress;
   }
   render(now) {
@@ -101,6 +110,7 @@ export class GalaxyScene {
     const params = this.params;
     this.stars.forEach((cloud) => cloud.update(animationTime, params));
     this.nebula.forEach((cloud) => cloud.update(animationTime, params));
+    this.foreground.update(animationTime, params);
     if (this.residual) this.residual.material.uniforms.uOpacity.value = params.mode === 'pointcloud' ? 0 : params.mode === 'original' ? 1 : params.residual;
     if (this.bloomPass) this.bloomPass.strength = params.bloom ? params.bloomStrength : 0;
     this.composer.render(); this.fps = damp(this.fps || 60, 1 / dt, 4, dt);
@@ -114,10 +124,11 @@ export class GalaxyScene {
   debugInfo() {
     const stars = this.stars?.reduce((sum, cloud) => sum + cloud.count, 0) ?? 0;
     const nebula = this.nebula?.reduce((sum, cloud) => sum + cloud.count, 0) ?? 0;
-    return { mode: this.params.mode, progress: this.progress, morph: clamp(this.params.morph + this.progress * 0.85, 0, 1), residual: this.residual?.material.uniforms.uOpacity.value ?? 0, stars, nebula, totalPoints: stars + nebula, fps: this.fps, calls: this.renderer.info.render.calls, geometries: this.renderer.info.memory.geometries, textures: this.renderer.info.memory.textures };
+    return { mode: this.params.mode, progress: this.progress, morph: clamp(this.params.morph + this.progress * 0.85, 0, 1), residual: this.residual?.material.uniforms.uOpacity.value ?? 0, stars, nebula, totalPoints: stars + nebula, fps: this.fps, calls: this.renderer.info.render.calls, geometries: this.renderer.info.memory.geometries, textures: this.renderer.info.memory.textures, foreground: this.foreground?.count ?? 0 };
   }
   dispose() {
     window.removeEventListener('resize', this._resize); this.stars?.forEach((cloud) => cloud.dispose()); this.nebula?.forEach((cloud) => cloud.dispose());
+    this.foreground?.dispose();
     this.residual?.geometry.dispose(); this.residual?.material.dispose(); this.residualTexture?.dispose(); this.bloomPass?.dispose(); this.outputPass?.dispose(); this.composer?.dispose(); this.renderer.dispose();
   }
 }

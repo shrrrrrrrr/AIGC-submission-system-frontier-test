@@ -145,3 +145,21 @@ def sample_nebula_layer(rgb, count, layer, thickness=5.0, seed=SEED):
     alpha_scale = {'front': .20, 'mid': .34, 'back': .13}[layer]
     alpha = np.clip(alpha_base + d * alpha_scale, .012, .42)
     return np.column_stack((x, y, z, size, linear_rgb(colors), alpha, d, rng.random(count))).astype('<f4')
+
+def sample_foreground_dust(rgb, count=7000, seed=SEED):
+    _, density = analyze_structure(rgb)
+    h, w = density.shape
+    rng = np.random.default_rng(seed + 77)
+    weights = .02 + density * .55
+    indexes = rng.choice(w * h, count, replace=True, p=(weights / weights.sum()).ravel())
+    iy, ix = np.divmod(indexes, w)
+    xs = np.clip(ix + rng.uniform(-.5, .5, count), 0, w-1)
+    ys = np.clip(iy + rng.uniform(-.5, .5, count), 0, h-1)
+    z = -2.0 - rng.random(count) * 6.0
+    x, y, _ = image_to_world(xs, ys, w, h, z)
+    x += rng.normal(0, .45, count)
+    y += rng.normal(0, .45, count)
+    colors = rgb[iy, ix]
+    size = (.05 + rng.power(2.0, count) * .16) * (CAMERA_Z-z)/50
+    alpha = np.clip(.025 + density[iy, ix] * .10 + rng.random(count) * .018, .012, .16)
+    return np.column_stack((x, y, z, size, linear_rgb(colors), alpha)).astype('<f4')

@@ -33,7 +33,7 @@ export class NebulaCloud {
       fragmentShader: nebulaFragment,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: layer === 'mid' ? THREE.AdditiveBlending : THREE.NormalBlending,
       toneMapped: false
     });
     this.points = new THREE.Points(geometry, material);
