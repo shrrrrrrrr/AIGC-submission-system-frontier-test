@@ -124,7 +124,8 @@ export class GalaxyScene {
   debugInfo() {
     const stars = this.stars?.reduce((sum, cloud) => sum + cloud.count, 0) ?? 0;
     const nebula = this.nebula?.reduce((sum, cloud) => sum + cloud.count, 0) ?? 0;
-    return { mode: this.params.mode, progress: this.progress, morph: clamp(this.params.morph + this.progress * 0.85, 0, 1), residual: this.residual?.material.uniforms.uOpacity.value ?? 0, stars, nebula, totalPoints: stars + nebula, fps: this.fps, calls: this.renderer.info.render.calls, geometries: this.renderer.info.memory.geometries, textures: this.renderer.info.memory.textures, foreground: this.foreground?.count ?? 0 };
+    const foreground = this.foreground?.count ?? 0;
+    return { mode: this.params.mode, progress: this.progress, morph: clamp(this.params.morph + this.progress * 0.85, 0, 1), residual: this.residual?.material.uniforms.uOpacity.value ?? 0, stars, nebula, foreground, totalPoints: stars + nebula + foreground, fps: this.fps, calls: this.renderer.info.render.calls, geometries: this.renderer.info.memory.geometries, textures: this.renderer.info.memory.textures };
   }
   dispose() {
     window.removeEventListener('resize', this._resize); this.stars?.forEach((cloud) => cloud.dispose()); this.nebula?.forEach((cloud) => cloud.dispose());
@@ -132,3 +133,4 @@ export class GalaxyScene {
     this.residual?.geometry.dispose(); this.residual?.material.dispose(); this.residualTexture?.dispose(); this.bloomPass?.dispose(); this.outputPass?.dispose(); this.composer?.dispose(); this.renderer.dispose();
   }
 }
+
