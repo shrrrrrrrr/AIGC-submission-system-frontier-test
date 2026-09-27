@@ -1,4 +1,5 @@
 import './base-main.js';
+import './hero-ring.js';
 import './style.css';
 import { GalaxyHomepageRenderer } from './presentation.js';
 let renderer,raf=0;
@@ -15,4 +16,3 @@ try{
  }
 }
 window.addEventListener('pagehide',event=>{if(!event.persisted){cancelAnimationFrame(raf);renderer?.dispose();}else if(renderer)renderer.lastTime=0;});
-
