@@ -54,7 +54,6 @@ export class GalaxyHomepageRenderer {
     try {this.manifest=await readAsset('galaxies/manifest.json');await this.ensure('galaxy-a',true);}
     catch(error){for(const s of this.sections){s.message.hidden=false;s.message.textContent='银河资源载入失败，已显示静态预览。';}this.initialError=error.message;}
   }
-  setStatus(text){const element=document.querySelector("#galaxy-status");if(element)element.textContent=text;}
   measure(){for(const s of this.sections){const rect=s.element.getBoundingClientRect();s.top=rect.top+window.scrollY;s.height=rect.height;}this.dirty=false;}
   resize(){
     this.width=innerWidth;this.height=innerHeight;this.mobile=innerWidth<700;
@@ -114,7 +113,6 @@ export class GalaxyHomepageRenderer {
       this.quad.render(r);
     }
     r.setScissorTest(false);r.setViewport(0,0,w,h);this.frameCalls=r.info.render.calls;
-    const active = this.visible.map(s => s.id.replace('galaxy-', 'Galaxy ')).join(' · '); if (active) this.setStatus(active + ' · ' + this.visible.length + ' scene' + (this.visible.length === 1 ? '' : 's') + ' visible');
   }
   info(){return{visible:this.visible.map(s=>s.id),loaded:[...this.assets.keys()],pending:[...this.pending.keys()],errors:Object.fromEntries(this.failed),
     scenes:this.visible.map(s=>this.assets.get(s.id)?.debug()).filter(Boolean),calls:this.frameCalls,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,

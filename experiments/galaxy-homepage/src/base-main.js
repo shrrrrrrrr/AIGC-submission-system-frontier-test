@@ -32,10 +32,6 @@ const cards = Array.from({ length: count }, (_, index) => {
   link.append(image, label); container.append(link); return link;
 });
 
-for (const item of news) {
-  const link = document.createElement('a'); link.href = safeLink(item.href); link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = `${item.title} ↗`;
-  document.querySelector('#news-list').append(link);
-}
 
 function render() {
   let nearest = 0; let maxDepth = -Infinity;
@@ -147,4 +143,3 @@ new ResizeObserver(resize).observe(stage);
 new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }), { threshold: .12 }).observe(document.querySelector('.hero'));
 document.querySelectorAll('[data-reveal]:not(.hero)').forEach(element => new IntersectionObserver(([entry], observer) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.disconnect(); } }, { threshold: .12 }).observe(element));
 resize(); render(); wake();
-

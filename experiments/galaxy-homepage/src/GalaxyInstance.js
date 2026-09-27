@@ -50,7 +50,7 @@ export class GalaxyInstance {
   }
   measureComposition() {
     // Match the actual vertex shader's image->volume morph and Z expansion.
-    // Use central mid-nebula quantiles, never a bounding box of outlier stars.
+    // Retain 98% of the mid-nebula composition, excluding only sparse outliers.
     const data = this.clouds[1].geometry.attributes.position;
     const xs = [], ys = [];
     for (let i = 0; i < data.count; i++) {
@@ -63,19 +63,20 @@ export class GalaxyInstance {
     }
     xs.sort((a,b)=>a-b); ys.sort((a,b)=>a-b);
     const q = (a,p) => a[Math.floor((a.length - 1) * p)];
-    return { left:q(xs,.07), right:q(xs,.93), bottom:q(ys,.07), top:q(ys,.93) };
+    return { left:q(xs,.01), right:q(xs,.99), bottom:q(ys,.01), top:q(ys,.99) };
   }
   resize(width, height, dpr) {
     const aspect = width / height, b = this.bounds;
-    // Fixed per-layout framing. Reserve angular motion + particle breathing margin.
-    this.scrollPitchMax = rad(2.1); this.pointerPitchMax = rad(.55); this.pointerYawMax = rad(.85);
-    const safeX = Math.max(.04, Math.min(-b.left,b.right) - Math.tan(this.pointerYawMax) - .008);
-    const safeY = Math.max(.04, Math.min(-b.bottom,b.top) - Math.tan(this.scrollPitchMax + this.pointerPitchMax + Math.abs(this.basePitch)) - .008);
-    const tanHalf = Math.min(Math.tan(rad(23)), safeX / aspect / 1.28, safeY / 1.28);
+    // Wider fixed layout framing. Orbiting the focus cancels most rigid camera rotation;
+    // reserve a depth-parallax margin plus breathing, with no scroll-dependent zoom.
+    this.scrollPitchMax = rad(2.1); this.pointerPitchMax = rad(1.6); this.pointerYawMax = rad(3.2);
+    const safeX = Math.max(.04, Math.min(-b.left,b.right) - Math.tan(this.pointerYawMax) * .35 - .008);
+    const safeY = Math.max(.04, Math.min(-b.bottom,b.top) - Math.tan(this.scrollPitchMax + this.pointerPitchMax + Math.abs(this.basePitch)) * .35 - .008);
+    const tanHalf = Math.min(Math.tan(rad(23)), safeX / aspect / 1.06, safeY / 1.06);
     this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanHalf));
     this.camera.aspect = aspect; this.camera.updateProjectionMatrix();
     this.params.projectionScale = height * dpr / (2 * tanHalf);
-    this.framing = { aspect, fov:this.camera.fov, overscan:1.28, radius:this.radius, safeX, safeY };
+    this.framing = { aspect, fov:this.camera.fov, overscan:1.06, radius:this.radius, safeX, safeY };
   }
   update(progress, pointer, dt, time, reducedMotion) {
     if (this.localProgress === null || reducedMotion) this.localProgress = progress;
