@@ -1,0 +1,41 @@
+{
+  "mode": "hybrid",
+  "previewProgress": 1.0,
+  "residual": 0.0,
+  "depthStrength": 1.57,
+  "thickness": 2.0,
+  "parallax": 2.0,
+  "starSize": 1.24,
+  "nebulaSize": 0.48,
+  "pointDensity": 0.83,
+  "flightSpeed": 2.0,
+  "starIntensity": 1.5,
+  "foregroundCleanup": 1.0,
+  "foregroundSoftness": 2.0,
+  "bloom": true,
+  "bloomStrength": 0.42,
+  "starVisibility": {
+    "bright": 1,
+    "medium": 0,
+    "dust": 0
+  },
+  "nebulaVisibility": {
+    "front": 0,
+    "mid": 1,
+    "back": 0
+  },
+  "foregroundVisibility": 1,
+  "residualVisible": 0,
+  "starLayers": {
+    "bright": 1,
+    "medium": 0.8,
+    "dust": 0.42
+  },
+  "nebulaIntensity": {
+    "front": 0.55,
+    "mid": 1.0,
+    "back": 0.52
+  },
+  "manualMorph": 0.0,
+  "fixedMorph": 0.85
+}
