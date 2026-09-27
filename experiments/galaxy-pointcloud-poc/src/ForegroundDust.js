@@ -24,7 +24,7 @@ export class ForegroundDust {
     geometry.setAttribute('aAlpha', new THREE.BufferAttribute(alpha, 1));
     geometry.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
     this.material = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uSize: { value: 1 }, uProjectionScale: { value: 1000 }, uCameraProgress: { value: 0 }, uPointer: { value: new THREE.Vector2() } },
+      uniforms: { uTime: { value: 0 }, uSize: { value: 1 }, uProjectionScale: { value: 1000 }, uCameraProgress: { value: 0 }, uCleanup: { value: 0.7 }, uSoftness: { value: 1 }, uPointer: { value: new THREE.Vector2() } },
       vertexShader: foregroundVertex,
       fragmentShader: foregroundFragment,
       transparent: true,
@@ -43,8 +43,10 @@ export class ForegroundDust {
     u.uSize.value = params.foregroundSize;
     u.uProjectionScale.value = params.projectionScale;
     u.uCameraProgress.value = params.cameraProgress;
+    u.uCleanup.value = params.foregroundCleanup;
+    u.uSoftness.value = params.foregroundSoftness;
     this.pointerUniform.set(params.pointerX, params.pointerY);
-    this.points.visible = params.mode !== 'original';
+    this.points.visible = params.mode !== 'original' && params.foregroundVisibility > 0;
   }
   dispose() { this.geometry.dispose(); this.material.dispose(); }
 }

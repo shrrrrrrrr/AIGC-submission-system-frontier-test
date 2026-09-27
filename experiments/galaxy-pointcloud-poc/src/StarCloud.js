@@ -50,7 +50,7 @@ export class StarCloud {
     u.uParallax.value = params.parallax;
     this.pointerUniform.set(params.pointerX, params.pointerY);
     u.uIntensity.value = params.starIntensity * params.starLayers[this.layer];
-    this.points.visible = params.mode !== 'original' && params.starLayers[this.layer] > 0;
+    this.points.visible = params.mode !== 'original' && params.starVisibility[this.layer] > 0;
   }
   dispose() { this.geometry.dispose(); this.material.dispose(); }
 }

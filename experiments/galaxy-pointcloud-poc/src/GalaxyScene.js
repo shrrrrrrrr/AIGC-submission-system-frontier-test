@@ -38,10 +38,11 @@ export class GalaxyScene {
     this.params = {
       mode: 'hybrid', residual: 0.35, depthStrength: 1, thickness: 1, parallax: 1,
       starSize: 1, nebulaSize: 1, foregroundSize: 1, nebulaOpacity: 0.62, pointDensity: 1, bloom: true,
-      bloomStrength: 0.42, morph: 0, flightSpeed: 1, starIntensity: 1,
+      bloomStrength: 0.42, morph: 0, flightSpeed: 1, starIntensity: 1, foregroundCleanup: 0.7, foregroundSoftness: 1, foregroundVisibility: 1, residualVisible: 1,
       starLayers: { bright: 1, medium: 0.8, dust: 0.42 },
+      starVisibility: { bright: 1, medium: 1, dust: 1 },
       nebulaVisibility: { front: 1, mid: 1, back: 1 },
-      nebulaIntensity: { front: 0.75, mid: 1, back: 0.52 }, pointerX: 0, pointerY: 0, projectionScale: 1000, cameraProgress: 0
+      nebulaIntensity: { front: 0.55, mid: 1, back: 0.52 }, pointerX: 0, pointerY: 0, projectionScale: 1000, cameraProgress: 0
     };
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.time = 0; this.lastFrame = performance.now(); this.fps = 0;
@@ -74,6 +75,7 @@ export class GalaxyScene {
   updateParams(next) {
     Object.assign(this.params, next);
     if (next.starLayers) this.params.starLayers = { ...this.params.starLayers, ...next.starLayers };
+    if (next.starVisibility) this.params.starVisibility = { ...this.params.starVisibility, ...next.starVisibility };
     if (next.nebulaVisibility) this.params.nebulaVisibility = { ...this.params.nebulaVisibility, ...next.nebulaVisibility };
     if (next.nebulaIntensity) this.params.nebulaIntensity = { ...this.params.nebulaIntensity, ...next.nebulaIntensity };
     if (this.bloomPass) this.bloomPass.strength = this.params.bloom ? this.params.bloomStrength : 0;
@@ -111,7 +113,7 @@ export class GalaxyScene {
     this.stars.forEach((cloud) => cloud.update(animationTime, params));
     this.nebula.forEach((cloud) => cloud.update(animationTime, params));
     this.foreground.update(animationTime, params);
-    if (this.residual) this.residual.material.uniforms.uOpacity.value = params.mode === 'pointcloud' ? 0 : params.mode === 'original' ? 1 : params.residual;
+    if (this.residual) this.residual.material.uniforms.uOpacity.value = params.residualVisible && params.mode !== 'pointcloud' ? (params.mode === 'original' ? 1 : params.residual) : 0;
     if (this.bloomPass) this.bloomPass.strength = params.bloom ? params.bloomStrength : 0;
     this.composer.render(); this.fps = damp(this.fps || 60, 1 / dt, 4, dt);
   }
@@ -133,4 +135,3 @@ export class GalaxyScene {
     this.residual?.geometry.dispose(); this.residual?.material.dispose(); this.residualTexture?.dispose(); this.bloomPass?.dispose(); this.outputPass?.dispose(); this.composer?.dispose(); this.renderer.dispose();
   }
 }
-

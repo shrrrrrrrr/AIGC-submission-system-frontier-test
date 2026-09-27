@@ -51,7 +51,7 @@
           "emissive"
         ],
         "bytes": 768000,
-        "sha256": "7e2d76e56e89dc1644258ea975a71d95552df44acc165d661544b28a94e1650d"
+        "sha256": "39e242d7f01ce7416ea2d639fa1f3f980a22a649a3d534cd33df2eb46e81cf4f"
       },
       "dust": {
         "file": "stars-dust.bin",
@@ -68,7 +68,7 @@
           "emissive"
         ],
         "bytes": 1920000,
-        "sha256": "db03f81c8b1a93d68e53c429426c60086ed2c6561d05d46b6e5ff69916a9fbc8"
+        "sha256": "46218faad3248f2b8e30fdf929e9e53a140604dab5ccaf026c2224925854e668"
       }
     },
     "count": 86322
@@ -92,7 +92,7 @@
           "seed"
         ],
         "bytes": 720000,
-        "sha256": "5654ecf4950304293cffb4e3caa96e69ed8788591d7c1f422b4b873d4788fdba"
+        "sha256": "85062b96da126acba59ee5d33f7638c19c70abf33c6764ca102354adec5dffb9"
       },
       "mid": {
         "file": "nebula-mid.bin",
@@ -153,7 +153,7 @@
       "alpha"
     ],
     "bytes": 224000,
-    "sha256": "076f3921e0a766b21cd8a8812ab8775e1dcf66b8c745874eed84647cb62f2c1e"
+    "sha256": "eb166bd04335caaeb905a557325827618c0fec5457c128f058c474d0ef152c7b"
   },
   "residual": {
     "file": "residual.webp",

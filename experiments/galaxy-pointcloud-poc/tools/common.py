@@ -90,14 +90,19 @@ def detect_stars(rgb, max_stars=6000, seed=SEED):
 
 def sample_star_layer(rgb, count, layer, seed=SEED):
     _, density = analyze_structure(rgb)
-    lum = robust_normalize(luminance(rgb))
+    lum_raw = luminance(rgb)
+    lum = robust_normalize(lum_raw)
+    # Compact high-pass response keeps continuous cloud texture out of star layers.
+    peak = robust_normalize(np.maximum(0, lum_raw - gaussian_filter(lum_raw, 1.6)))
+    cloud_penalty = np.clip(density * (1.0 - peak), 0.0, 1.0)
+    pointiness = np.clip(0.15 + peak * (1.0 - 0.78 * cloud_penalty), 0.05, 1.0)
     h, w = density.shape
     if layer == 'medium':
-        weights = .015 + density ** 1.35
+        weights = .015 + density ** 1.15 * pointiness
         z = -20 - np.random.default_rng(seed).random(count) ** .65 * 26
         size_base, emissive_base = .55, .10
     else:
-        weights = .025 + density * .45 + lum * .12
+        weights = .025 + (density * .28 + lum * .08) * pointiness
         z = -50 - np.random.default_rng(seed).random(count) ** .7 * 42
         size_base, emissive_base = .24, .025
     rng = np.random.default_rng(seed + 9)
@@ -111,7 +116,8 @@ def sample_star_layer(rgb, count, layer, seed=SEED):
     x, y, _ = image_to_world(xs, ys, w, h, z)
     size = (size_base + rng.random(count) * size_base * .8 + d * size_base * .8) * WORLD_WIDTH / w * (CAMERA_Z-z)/50
     colors = rgb[iy, ix]
-    emissive = np.clip(emissive_base + brightness * (.18 if layer == 'medium' else .045) + d * (.08 if layer == 'medium' else .02), .01, .34)
+    cloud_suppression = map_coordinates(pointiness, [ys, xs], order=1)
+    emissive = np.clip(emissive_base + brightness * (.15 if layer == 'medium' else .035) + d * (.055 if layer == 'medium' else .014) * cloud_suppression, .01, .30)
     return np.column_stack((x, y, z, size, linear_rgb(colors), emissive)).astype('<f4')
 
 
@@ -127,7 +133,7 @@ def sample_nebula_layer(rgb, count, layer, thickness=5.0, seed=SEED):
     d = map_coordinates(density, [ys, xs], order=1)
     if layer == 'front':
         base = -7 - d * 7
-        spread, size_base = .20, .34
+        spread, size_base = .20, .40
     elif layer == 'mid':
         base = -22 - d * 20
         spread, size_base = .48, .24
@@ -141,8 +147,8 @@ def sample_nebula_layer(rgb, count, layer, thickness=5.0, seed=SEED):
     x, y, _ = image_to_world(xs, ys, w, h, z)
     size = (size_base + rng.random(count) * size_base * .8 + d * size_base * .7) * (CAMERA_Z-z)/50
     colors = np.column_stack([map_coordinates(color_field[:, :, c], [ys, xs], order=1) for c in range(3)])
-    alpha_base = {'front': .10, 'mid': .14, 'back': .055}[layer]
-    alpha_scale = {'front': .20, 'mid': .34, 'back': .13}[layer]
+    alpha_base = {'front': .055, 'mid': .14, 'back': .055}[layer]
+    alpha_scale = {'front': .11, 'mid': .34, 'back': .13}[layer]
     alpha = np.clip(alpha_base + d * alpha_scale, .012, .42)
     return np.column_stack((x, y, z, size, linear_rgb(colors), alpha, d, rng.random(count))).astype('<f4')
 
@@ -161,5 +167,5 @@ def sample_foreground_dust(rgb, count=7000, seed=SEED):
     y += rng.normal(0, .45, count)
     colors = rgb[iy, ix]
     size = (.05 + rng.power(2.0, count) * .16) * (CAMERA_Z-z)/50
-    alpha = np.clip(.025 + density[iy, ix] * .10 + rng.random(count) * .018, .012, .16)
+    alpha = np.clip(.014 + density[iy, ix] * .06 + rng.random(count) * .012, .008, .085)
     return np.column_stack((x, y, z, size, linear_rgb(colors), alpha)).astype('<f4')
