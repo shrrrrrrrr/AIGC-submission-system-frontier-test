@@ -40,5 +40,10 @@
     "mid": 1.0,
     "back": 0.52
   },
-  "notes": "All runtime parameters intentionally match Galaxy A approved preset for scene comparison; source-derived point counts and colors remain asset-specific."
+  "notes": "All runtime parameters intentionally match Galaxy A approved preset for scene comparison; source-derived point counts and colors remain asset-specific.",
+  "scrollPitchDegrees": 6.0,
+  "pointerYawDegrees": 5.0,
+  "pointerPitchDegrees": 3.0,
+  "followSpeed": 6.0,
+  "safeOverscan": 1.12
 }

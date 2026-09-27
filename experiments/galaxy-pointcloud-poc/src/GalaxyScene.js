@@ -1,3 +1,4 @@
+import { GalaxyInstance } from '../../galaxy-homepage/src/GalaxyInstance.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -18,6 +19,7 @@ const DEFAULT_PARAMS = {
   bloomStrength: 0.42, morph: 0, flightSpeed: 1, starIntensity: 1, foregroundCleanup: 0.7, foregroundSoftness: 1,
   foregroundVisibility: 1, residualVisible: 1,
   starLayers: { bright: 1, medium: 0.8, dust: 0.42 },
+  scrollPitchDegrees: 6, pointerYawDegrees: 5, pointerPitchDegrees: 3, followSpeed: 6, safeOverscan: 1.12,
   starVisibility: { bright: 1, medium: 1, dust: 1 },
   nebulaVisibility: { front: 1, mid: 1, back: 1 },
   nebulaIntensity: { front: 0.55, mid: 1, back: 0.52 },
@@ -33,13 +35,13 @@ const cloneParams = (source) => ({
 });
 
 async function responseJson(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) throw new Error(`Unable to load ${url}: ${response.status}`);
   return response.json();
 }
 
 async function responseBuffer(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) throw new Error(`Unable to load ${url}: ${response.status}`);
   return response.arrayBuffer();
 }
@@ -70,7 +72,7 @@ export class GalaxyScene {
     this.pointer = new THREE.Vector2();
     this.pointerCurrent = new THREE.Vector2();
     this.progress = 0;
-    this.progressTarget = 0;
+    this.progressTarget = 0; this.previewMode='presentation';
     this.params = cloneParams({});
     this.manifest = null;
     this.assetId = null;
@@ -116,9 +118,14 @@ export class GalaxyScene {
     const texture = await new THREE.TextureLoader().loadAsync(`${base}/${metadata.residual.file}`);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearFilter;
-    let preset = null;
-    if (entry.preset) {
-      try { preset = await responseJson(entry.preset); } catch (error) { console.warn(`Preset unavailable for ${entry.assetId}`, error); }
+    let preset = null; let revision = null;
+    try {
+      if(!import.meta.env.DEV) throw new Error('静态构建使用随包预设');
+      const response = await fetch(`/__galaxy/config/${entry.assetId}`, { cache: 'no-store' });
+      if (response.ok) { const payload = await response.json(); preset = payload.preset; revision = payload.revision; }
+    } catch (error) { console.warn(`本地预设服务不可用，将读取静态预设：${error.message}`); }
+    if (!preset && entry.preset) {
+      try { preset = await responseJson(entry.preset); } catch (error) { console.warn(`无法读取 ${entry.assetId} 的静态预设`, error); }
     }
     return {
       entry,
@@ -128,7 +135,7 @@ export class GalaxyScene {
       stars: starBuffers.map((buffer, index) => new StarCloud(new Float32Array(buffer), metadata.stars.layers[layerFiles[index]].count, layerFiles[index], metadata.stars.layers[layerFiles[index]].stride)),
       nebula: nebulaBuffers.map((buffer, index) => new NebulaCloud(new Float32Array(buffer), metadata.nebula.layers[nebulaFiles[index]].count, nebulaFiles[index], metadata.nebula.layers[nebulaFiles[index]].stride)),
       foreground: new ForegroundDust(new Float32Array(foregroundBuffer), metadata.foreground.count, metadata.foreground.stride),
-      preset
+      preset, revision
     };
   }
 
@@ -157,6 +164,7 @@ export class GalaxyScene {
     this.metadata = bundle.metadata;
     this.assetId = bundle.entry.assetId;
     this.assetConfig = bundle.config || {};
+    this.revision = bundle.revision || this.revision || null;
     this.stars = bundle.stars;
     this.nebula = bundle.nebula;
     this.foreground = bundle.foreground;
@@ -179,7 +187,7 @@ export class GalaxyScene {
       const bundle = await this.loadAssetBundle(entry);
       if (token !== this.loadToken) { this.disposeBundle(bundle); return false; }
       this.attachBundle(bundle);
-      this.applyPreset(bundle.preset || entry.defaultPreset || {}, false);
+      this.applyPreset(bundle.preset || entry.defaultPreset || {}, false, bundle.revision);
       this.loading = false;
       this.resize();
       this.onStateChange({ loading: false, assetId: this.assetId, entry, preset: bundle.preset });
@@ -194,31 +202,69 @@ export class GalaxyScene {
     }
   }
 
-  applyPreset(preset, emit = true) {
+  applyPreset(preset, emit = true, revision = this.revision) {
     this.params = cloneParams(preset || {});
+    this.revision = revision || this.revision;
     this.progressTarget = clamp(Number(preset?.previewProgress ?? 0), 0, 1);
     this.progress = this.progressTarget;
+    this.configurePresentation();
     this.targetCurrent.set(0, 0, 0);
     if (emit) this.onStateChange({ loading: false, assetId: this.assetId, preset });
+  }
+
+  configurePresentation() {
+    if(!this.nebula) return;
+    const config=this.assetConfig.camera||{};
+    const target=new THREE.Vector3(config.focalX||0,config.focalY||0,config.targetZEnd??-35);
+    const dz=(config.endZ??12)-target.z;
+    const dy=Math.sin(Math.PI*.9)*Math.tan(THREE.MathUtils.degToRad(config.pitchDegrees??5))*dz*.12;
+    this.presentation={camera:this.camera,clouds:[this.stars[0],this.nebula[1],this.foreground],params:this.params,target,radius:Math.hypot(dz,dy),basePitch:Math.atan2(dy,dz),localProgress:null,measureComposition:GalaxyInstance.prototype.measureComposition};
+    this.presentation.bounds=this.presentation.measureComposition();
+    GalaxyInstance.prototype.resize.call(this.presentation,innerWidth,innerHeight,this.renderer.getPixelRatio());
   }
 
   setPointer(x, y) { this.pointer.set(clamp(x, -1, 1), clamp(y, -1, 1)); }
   setProgress(value) { this.progressTarget = clamp(value, 0, 1); }
 
+  getPresetForSave() {
+    const preset = structuredClone(this.params);
+    delete preset.pointerX; delete preset.pointerY; delete preset.projectionScale; delete preset.cameraProgress;
+    preset.assetId = this.assetId; preset.previewProgress = this.progressTarget;
+    return preset;
+  }
+
+  async refreshRemotePreset() {
+    if (!this.assetId) return false;
+    const response = await fetch(`/__galaxy/config/${this.assetId}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`读取预设失败：HTTP ${response.status}`);
+    const payload = await response.json();
+    this.applyPreset(payload.preset, true, payload.revision);
+    return true;
+  }
+
   updateParams(next) {
-    this.params = cloneParams({ ...this.params, ...next });
-    if (next.starLayers) this.params.starLayers = { ...this.params.starLayers, ...next.starLayers };
-    if (next.starVisibility) this.params.starVisibility = { ...this.params.starVisibility, ...next.starVisibility };
-    if (next.nebulaVisibility) this.params.nebulaVisibility = { ...this.params.nebulaVisibility, ...next.nebulaVisibility };
-    if (next.nebulaIntensity) this.params.nebulaIntensity = { ...this.params.nebulaIntensity, ...next.nebulaIntensity };
-    if (this.bloomPass) this.bloomPass.strength = this.params.bloom ? this.params.bloomStrength : 0;
+    const merged={...this.params,...next};
+    for(const key of ['starLayers','starVisibility','nebulaVisibility','nebulaIntensity']) merged[key]={...this.params[key],...(next[key]||{})};
+    this.params=cloneParams(merged);
+    if(this.presentation) {this.presentation.params=this.params;this.presentation.bounds=this.presentation.measureComposition();GalaxyInstance.prototype.resize.call(this.presentation,innerWidth,innerHeight,this.renderer.getPixelRatio());}
   }
 
   updateCamera(dt) {
+    if(this.previewMode==='presentation' && this.presentation) {
+      this.pointerCurrent.lerp(this.pointer,1-Math.exp(-(this.params.followSpeed??6)*dt));
+      this.presentation.params=this.params;
+      this.presentation.params.cameraProgress=1;
+      this.presentation.params.pointerX=this.pointerCurrent.x;
+      this.presentation.params.pointerY=this.pointerCurrent.y;
+      GalaxyInstance.prototype.update.call(this.presentation,this.progressTarget,this.pointerCurrent,dt,this.time,this.reducedMotion);
+      this.progress=this.presentation.localProgress;this.params.cameraProgress=1;this.params.pointerX=0;this.params.pointerY=0;
+      return;
+    }
     const motion = this.reducedMotion ? 0.3 : 1;
+    const followSpeed = clamp(Number(this.params.followSpeed ?? 6), 2, 14);
     this.progress = damp(this.progress, this.progressTarget, 3 + this.params.flightSpeed * 4, dt);
-    this.pointerCurrent.x = damp(this.pointerCurrent.x, this.pointer.x, 5, dt);
-    this.pointerCurrent.y = damp(this.pointerCurrent.y, this.pointer.y, 5, dt);
+    this.pointerCurrent.x = damp(this.pointerCurrent.x, this.pointer.x, followSpeed, dt);
+    this.pointerCurrent.y = damp(this.pointerCurrent.y, this.pointer.y, followSpeed, dt);
     const p = this.progress * motion;
     const cameraConfig = this.assetConfig.camera || {};
     const cameraZ = THREE.MathUtils.lerp(cameraConfig.startZ ?? 58, cameraConfig.endZ ?? 12, p);
@@ -234,8 +280,10 @@ export class GalaxyScene {
     this.targetCurrent.x = damp(this.targetCurrent.x, this.baseTarget.x, 4, dt);
     this.targetCurrent.y = damp(this.targetCurrent.y, this.baseTarget.y, 4, dt);
     this.targetCurrent.z = damp(this.targetCurrent.z, this.baseTarget.z, 4, dt);
-    const px = this.pointerCurrent.x * maxYawX * 0.55 * this.params.parallax * motion;
-    const py = this.pointerCurrent.y * maxPitchY * 0.55 * this.params.parallax * motion;
+    const pointerYaw = THREE.MathUtils.degToRad(clamp(Number(this.params.pointerYawDegrees ?? 5), 0, 7)) * this.params.parallax;
+    const pointerPitch = THREE.MathUtils.degToRad(clamp(Number(this.params.pointerPitchDegrees ?? 3), 0, 4)) * this.params.parallax;
+    const px = this.pointerCurrent.x * Math.tan(Math.min(pointerYaw, THREE.MathUtils.degToRad(cameraConfig.yawDegrees ?? 8))) * distance * motion;
+    const py = this.pointerCurrent.y * Math.tan(Math.min(pointerPitch, THREE.MathUtils.degToRad(cameraConfig.pitchDegrees ?? 5))) * distance * motion;
     this.camera.position.set(clamp(this.baseCamera.x + px, focalX - maxYawX, focalX + maxYawX), clamp(this.baseCamera.y + py, focalY - maxPitchY, focalY + maxPitchY), cameraZ);
     this.lookTarget.set(this.targetCurrent.x - this.pointerCurrent.x * maxYawX * 0.12 * motion, this.targetCurrent.y - this.pointerCurrent.y * maxPitchY * 0.12 * motion, this.targetCurrent.z);
     this.camera.lookAt(this.lookTarget);
@@ -267,6 +315,7 @@ export class GalaxyScene {
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.setSize(w, h, false);
+    if(this.previewMode==='presentation' && this.presentation) {GalaxyInstance.prototype.resize.call(this.presentation,w,h,this.renderer.getPixelRatio());}
     this.params.projectionScale = h * this.renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov * 0.5)));
     this.composer.setPixelRatio(this.renderer.getPixelRatio());
     this.composer.setSize(w, h);
@@ -276,7 +325,7 @@ export class GalaxyScene {
     const stars = this.stars?.reduce((sum, cloud) => sum + cloud.count, 0) ?? 0;
     const nebula = this.nebula?.reduce((sum, cloud) => sum + cloud.count, 0) ?? 0;
     const foreground = this.foreground?.count ?? 0;
-    return { assetId: this.assetId, loading: this.loading, mode: this.params.mode, progress: this.progress, morph: clamp(this.params.morph + this.progress * 0.85, 0, 1), residual: this.residual?.material.uniforms.uOpacity.value ?? 0, stars, nebula, foreground, totalPoints: stars + nebula + foreground, fps: this.fps, calls: this.renderer.info.render.calls, geometries: this.renderer.info.memory.geometries, textures: this.renderer.info.memory.textures };
+    return { assetId: this.assetId, revision: this.revision, loading: this.loading, mode: this.params.mode, progress: this.progress, morph: clamp(this.params.morph + this.progress * 0.85, 0, 1), residual: this.residual?.material.uniforms.uOpacity.value ?? 0, stars, nebula, foreground, totalPoints: stars + nebula + foreground, fps: this.fps, calls: this.renderer.info.render.calls, geometries: this.renderer.info.memory.geometries, textures: this.renderer.info.memory.textures };
   }
 
   dispose() {

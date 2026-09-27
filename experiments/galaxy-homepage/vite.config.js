@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFileSync, createReadStream } from 'node:fs';
+import { galaxyPresetServer } from '../tools/galaxy-preset-server.mjs';
 const root = dirname(fileURLToPath(import.meta.url));
 const publicRoot = resolve(root, '../galaxy-pointcloud-poc/public');
 const manifest = JSON.parse(readFileSync(resolve(publicRoot, 'galaxies/manifest.json')));
@@ -14,7 +15,7 @@ for (const entry of manifest.assets) {
 export default defineConfig({
   base: './', publicDir: 'public',
   server: { fs: { allow: [resolve(root, '..')] } },
-  plugins: [{
+  plugins: [galaxyPresetServer({ writable: false }), {
     name: 'shared-enabled-galaxy-assets',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -32,5 +33,3 @@ export default defineConfig({
   }],
   build: { outDir: 'dist', emptyOutDir: true }
 });
-
-

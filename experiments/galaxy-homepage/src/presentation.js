@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { GalaxyInstance, readAsset, assetUrl } from './GalaxyInstance.js';
-import approved from '../config/approved-visual.json';
+import approved from '../../galaxy-pointcloud-poc/presets/galaxy-a-approved.json';
 
 export class GalaxyHomepageRenderer {
   constructor(canvas) {
@@ -39,6 +39,7 @@ export class GalaxyHomepageRenderer {
     this.onMotion=()=>{this.reducedMotion=this.motionQuery.matches;};
     this.onVisibility=()=>{this.lastTime=0;};
     this.onPointer=e=>{if(e.pointerType==='mouse')this.pointer.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);};
+    this.presetPoll=import.meta.env.DEV ? setInterval(()=>this.pollVisiblePresets(),900) : null;
     this.onBlur=()=>this.pointer.set(0,0);
     this.onContextLost=e=>{e.preventDefault();this.contextLost=true;for(const s of this.sections){s.fallback.hidden=false;s.message.hidden=false;s.message.textContent='图形上下文暂不可用，已显示静态预览。';}};
     this.onContextRestored=()=>{this.contextLost=false;this.dirty=true;this.lastTime=0;};
@@ -89,9 +90,10 @@ export class GalaxyHomepageRenderer {
   }
   render(now){
     if(this.dead||document.hidden||this.contextLost)return;
-    const dt=this.lastTime?Math.min(.05,(now-this.lastTime)/1000):1/60;this.lastTime=now;this.time+=dt;
+    const dt=this.lastTime?Math.min(.05,(now-this.lastTime)/1000):1/60;this.lastTime=now;this.time+=dt;this.fps += (1/dt-this.fps)*(1-Math.exp(-3*dt));
     if(this.dirty)this.measure();
-    this.pointerCurrent.lerp(this.pointer,1-Math.exp(-6*dt));
+    const followSpeed = this.visible.map(s=>this.assets.get(s.id)?.params?.followSpeed).find(Number.isFinite) ?? 6;
+    this.pointerCurrent.lerp(this.pointer,1-Math.exp(-followSpeed*dt));
     const h=this.height,w=this.width,r=this.renderer;
     this.visible=this.sections.filter(s=>s.top<this.scrollY+h&&s.top+s.height>this.scrollY);
     this.syncResources(this.visible);
@@ -107,12 +109,25 @@ export class GalaxyHomepageRenderer {
       asset.update(this.debugProgress??progress,this.pointerCurrent,dt,this.time,this.reducedMotion);
       // Always render a FULL viewport. Scissor applies only to final screen-space copy.
       r.setScissorTest(false);this.renderPass.scene=asset.scene;this.renderPass.camera=asset.camera;
+      this.bloom.enabled=!this.mobile && Boolean(asset.params.bloom);
+      this.bloom.strength=Number(asset.params.bloomStrength ?? .42);
       this.composer.render(dt);
       this.copyMaterial.uniforms.tDiffuse.value=this.composer.readBuffer.texture;
       r.setRenderTarget(null);r.setViewport(0,0,w,h);r.setScissor(0,h-bottom,w,bottom-top);r.setScissorTest(true);
       this.quad.render(r);
     }
     r.setScissorTest(false);r.setViewport(0,0,w,h);this.frameCalls=r.info.render.calls;
+  }
+  async pollVisiblePresets(){
+    for(const section of this.visible){
+      const asset=this.assets.get(section.id); if(!asset) continue;
+      try {
+        const response=await fetch(`/__galaxy/config/${section.id}`, { cache:'no-store' });
+        if(!response.ok) continue;
+        const payload=await response.json();
+        if(payload.revision && payload.revision !== asset.revision) asset.updatePreset(payload.preset, payload.revision);
+      } catch (error) { /* The static render remains available during a brief dev-server reconnect. */ }
+    }
   }
   info(){return{visible:this.visible.map(s=>s.id),loaded:[...this.assets.keys()],pending:[...this.pending.keys()],errors:Object.fromEntries(this.failed),
     scenes:this.visible.map(s=>this.assets.get(s.id)?.debug()).filter(Boolean),calls:this.frameCalls,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,
@@ -121,8 +136,8 @@ export class GalaxyHomepageRenderer {
     this.dead=true;for(const c of this.pending.values())c.abort();for(const a of this.assets.values())a.dispose();this.assets.clear();
     this.observer.disconnect();window.removeEventListener('scroll',this.onScroll);window.removeEventListener('resize',this.onResize);window.removeEventListener('pointermove',this.onPointer);window.removeEventListener('blur',this.onBlur);
     document.removeEventListener('visibilitychange',this.onVisibility);this.motionQuery.removeEventListener('change',this.onMotion);
+    clearInterval(this.presetPoll);
     this.renderer.domElement.removeEventListener('webglcontextlost',this.onContextLost);this.renderer.domElement.removeEventListener('webglcontextrestored',this.onContextRestored);
     this.bloom.dispose();this.renderPass.dispose();this.output.dispose();this.composer.dispose();this.copyMaterial.dispose();this.quad.dispose();this.renderer.dispose();
   }
 }
-

@@ -40,5 +40,10 @@
     "mid": 1.0,
     "back": 0.52
   },
-  "notes": "Approved Galaxy A UI state. morph is the manual morph parameter; effective morph remains manual morph + cameraProgress * 0.85, clamped to [0,1]."
+  "notes": "Approved Galaxy A UI state. morph is the manual morph parameter; effective morph remains manual morph + cameraProgress * 0.85, clamped to [0,1].",
+  "scrollPitchDegrees": 6.0,
+  "pointerYawDegrees": 5.0,
+  "pointerPitchDegrees": 3.0,
+  "followSpeed": 6.0,
+  "safeOverscan": 1.12
 }

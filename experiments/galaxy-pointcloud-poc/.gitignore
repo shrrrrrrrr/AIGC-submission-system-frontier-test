@@ -3,3 +3,4 @@ dist/
 .vite/
 __pycache__/
 checks/output/
+*.bak

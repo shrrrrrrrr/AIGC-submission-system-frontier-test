@@ -10,6 +10,13 @@ h1 { margin:9px 0 6px; font-size:clamp(24px,3vw,34px); line-height:1.05; font-we
 p { margin:0 0 13px; color:#b9b0cc; font-size:12px; line-height:1.55; }
 .control-group { border-top:1px solid rgba(224,210,255,.14); padding:9px 0 2px; }
 .control-group summary { cursor:pointer; color:#eeeafd; font-size:11px; font-weight:600; letter-spacing:.04em; margin-bottom:9px; }
+.save-row { display:flex; align-items:center; gap:8px; margin:10px 0 0; padding:8px; border:1px solid rgba(201,170,255,.2); border-radius:9px; background:rgba(139,91,218,.08); }
+.save-button { border:1px solid #c5a7ff; border-radius:7px; padding:7px 9px; background:#c5a7ff; color:#160b2b; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.save-button:disabled { opacity:.65; cursor:wait; }
+#save-state { min-width:0; color:#b9afd0; font-size:10px; line-height:1.35; }
+#save-state[data-state=saved] { color:#b8e6ca; }
+#save-state[data-state=error] { color:#ffb5b5; }
+#save-state[data-state=warning] { color:#ffdca4; }
 .scene-status { margin:8px 0 0; color:#d2b8ff; font:600 10px/1.4 ui-monospace,SFMono-Regular,monospace; letter-spacing:.04em; }
 .scene-row { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
 .scene-button { border:1px solid rgba(224,210,255,.25); color:#d4c8e8; background:rgba(255,255,255,.05); padding:7px 4px; border-radius:8px; cursor:pointer; font-size:10px; }
@@ -20,6 +27,7 @@ p { margin:0 0 13px; color:#b9b0cc; font-size:12px; line-height:1.55; }
 .mode { border:1px solid rgba(224,210,255,.28); color:#d4c8e8; background:rgba(255,255,255,.06); padding:7px 10px; border-radius:999px; cursor:pointer; font-size:11px; }
 .mode.active { background:#c5a7ff; color:#160b2b; border-color:#c5a7ff; }
 .controls label, .control-group > label { display:grid; grid-template-columns:1fr auto; gap:4px 10px; color:#bdb4cb; font-size:11px; margin:7px 0; }
+.control-help { margin:8px 0 10px; color:#968ca8; font-size:10px; line-height:1.5; }
 .control-group output { color:#eeeafd; font-variant-numeric:tabular-nums; }
 .control-group input[type=range] { grid-column:1/-1; width:100%; accent-color:#c9aaff; }
 .priority-control { padding:8px 9px 9px; border:1px solid rgba(201,170,255,.46); border-radius:10px; background:rgba(139,91,218,.16); color:#fff !important; font-weight:600; }

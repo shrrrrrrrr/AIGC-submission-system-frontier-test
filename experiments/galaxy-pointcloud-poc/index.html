@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Galaxy Point Cloud PoC</title>
+  <title>银河点云调参工具</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
@@ -11,63 +11,70 @@
   <main class="shell">
     <canvas id="galaxy-canvas" aria-label="银河三维点云"></canvas>
     <section class="hud" aria-label="银河点云调试面板">
-      <div class="eyebrow">PHASE 3.6 / MULTI-GALAXY POINT CLOUD</div>
-      <h1>银河点云重构</h1>
-      <p>从单张摄影图像提取结构，以受限视差观察银河空间厚度。</p>
-      <div class="scene-status" id="scene-loading" hidden>Loading Galaxy A…</div>
+      <div class="eyebrow">阶段 3.6 / 多银河点云调参工具</div>
+      <h1>银河点云调参</h1>
+      <p>从单张摄影图像提取结构，以受限视差观察银河空间厚度。参数保存后会同步到主页。</p>
+      <div class="scene-status" id="scene-loading" hidden>正在读取银河 A…</div>
+      <div class="save-row"><button id="save-preset" class="save-button" type="button">保存并同步主页</button><span id="save-state" data-state="saved">已读取当前预设</span></div>
       <details open class="control-group scene-group">
-        <summary>Galaxy scenes</summary>
-        <div class="scene-row" role="group" aria-label="Galaxy scene selector">
-          <button data-asset="galaxy-a" class="scene-button active"><kbd>1</kbd> Galaxy A</button>
-          <button data-asset="galaxy-b" class="scene-button"><kbd>2</kbd> Galaxy B</button>
-          <button data-asset="galaxy-c" class="scene-button"><kbd>3</kbd> Galaxy C</button>
-          <button data-asset="galaxy-d" class="scene-button"><kbd>4</kbd> Galaxy D</button>
+        <summary>银河场景</summary>
+        <div class="scene-row" role="group" aria-label="银河场景选择">
+          <button data-asset="galaxy-a" class="scene-button active"><kbd>1</kbd> 银河 A</button>
+          <button data-asset="galaxy-b" class="scene-button"><kbd>2</kbd> 银河 B</button>
+          <button data-asset="galaxy-c" class="scene-button"><kbd>3</kbd> 银河 C</button>
+          <button data-asset="galaxy-d" class="scene-button"><kbd>4</kbd> 银河 D</button>
         </div>
-        <div class="scene-current" id="scene-current">Active: Galaxy A · press 1–4 to switch</div>
+        <div class="scene-current" id="scene-current">当前：银河 A · 可用快捷键 1–4</div>
       </details>
       <details open class="control-group view-group">
-        <summary>View mode</summary>
+        <summary>显示模式</summary>
         <div class="mode-row" role="group" aria-label="显示模式">
-          <button data-mode="hybrid" class="mode active">Hybrid</button>
-          <button data-mode="pointcloud" class="mode">Point Cloud</button>
-          <button data-mode="original" class="mode">Original</button>
+          <button data-mode="hybrid" class="mode active">混合</button>
+          <button data-mode="pointcloud" class="mode">点云</button>
+          <button data-mode="original" class="mode">原图</button>
         </div>
       </details>
       <details open class="control-group primary-group">
-        <summary>Primary controls</summary>
-        <label class="priority-control">Camera progress <output id="progress-value">0.00</output><input id="progress" type="range" min="0" max="1" step="0.001" value="0" aria-label="Camera progress"></label>
-        <label>Residual opacity <output id="residual-value">0.35</output><input id="residual" type="range" min="0" max="1" step="0.01" value="0.35"></label>
-        <label>Depth strength <output id="depth-value">1.00</output><input id="depth" type="range" min="0" max="1.8" step="0.01" value="1"></label>
-        <label>Nebula thickness <output id="thickness-value">1.00</output><input id="thickness" type="range" min="0.2" max="2" step="0.01" value="1"></label>
-        <label>Camera parallax <output id="parallax-value">1.00</output><input id="parallax" type="range" min="0" max="2" step="0.01" value="1"></label>
-        <label>Morph amount <output id="morph-value">0.00</output><input id="morph" type="range" min="0" max="1" step="0.01" value="0"></label>
+        <summary>主要参数</summary>
+        <label class="priority-control">展示俯仰进度 <output id="progress-value">0.00</output><input id="progress" type="range" min="0" max="1" step="0.001" value="0" aria-label="展示俯仰进度"></label>
+        <label>底图透明度 <output id="residual-value">0.35</output><input id="residual" type="range" min="0" max="1" step="0.01" value="0.35"></label>
+        <label>深度强度 <output id="depth-value">1.00</output><input id="depth" type="range" min="0" max="1.8" step="0.01" value="1"></label>
+        <label>星云厚度 <output id="thickness-value">1.00</output><input id="thickness" type="range" min="0.2" max="2" step="0.01" value="1"></label>
+        <label>相机视差 <output id="parallax-value">1.00</output><input id="parallax" type="range" min="0" max="2" step="0.01" value="1"></label>
+        <label>手动展开量 <output id="morph-value">0.00</output><input id="morph" type="range" min="0" max="1" step="0.01" value="0"></label>
       </details>
       <details class="control-group">
-        <summary>Advanced controls</summary>
-        <label>Star size <output id="star-size-value">1.00</output><input id="star-size" type="range" min="0.4" max="2" step="0.01" value="1"></label>
-        <label>Nebula size <output id="nebula-size-value">1.00</output><input id="nebula-size" type="range" min="0.4" max="2" step="0.01" value="1"></label>
-        <label>Point density <output id="point-density-value">1.00</output><input id="point-density" type="range" min="0.15" max="1" step="0.01" value="1"></label>
-        <label>Camera flight speed <output id="flight-speed-value">1.00</output><input id="flight-speed" type="range" min="0.2" max="2" step="0.01" value="1"></label>
-        <label>Star layer intensity <output id="star-intensity-value">1.00</output><input id="star-intensity" type="range" min="0" max="1.5" step="0.01" value="1"></label>
-        <label>Foreground cleanup <output id="foreground-cleanup-value">0.70</output><input id="foreground-cleanup" type="range" min="0" max="1" step="0.01" value="0.7"></label>
-        <label>Foreground softness <output id="foreground-softness-value">1.00</output><input id="foreground-softness" type="range" min="0.5" max="2" step="0.01" value="1"></label>
-        <label class="check"><span>Bloom</span><input id="bloom" type="checkbox" checked></label>
-        <label>Bloom strength <output id="bloom-strength-value">0.42</output><input id="bloom-strength" type="range" min="0" max="1" step="0.01" value="0.42"></label>
+        <summary>高级参数</summary>
+        <label>恒星大小 <output id="star-size-value">1.00</output><input id="star-size" type="range" min="0.4" max="2" step="0.01" value="1"></label>
+        <label>星云粒子大小 <output id="nebula-size-value">1.00</output><input id="nebula-size" type="range" min="0.4" max="2" step="0.01" value="1"></label>
+        <label>点云显示密度 <output id="point-density-value">1.00</output><input id="point-density" type="range" min="0.15" max="1" step="0.01" value="1"></label>
+        <label>相机推进速度 <output id="flight-speed-value">1.00</output><input id="flight-speed" type="range" min="0.2" max="2" step="0.01" value="1"></label>
+        <label>恒星层强度 <output id="star-intensity-value">1.00</output><input id="star-intensity" type="range" min="0" max="1.5" step="0.01" value="1"></label>
+        <label>前景颗粒抑制 <output id="foreground-cleanup-value">0.70</output><input id="foreground-cleanup" type="range" min="0" max="1" step="0.01" value="0.7"></label>
+        <label>前景柔和度 <output id="foreground-softness-value">1.00</output><input id="foreground-softness" type="range" min="0.5" max="2" step="0.01" value="1"></label>
+        <label class="check"><span>辉光（Bloom）</span><input id="bloom" type="checkbox" checked></label>
+        <label>辉光强度 <output id="bloom-strength-value">0.42</output><input id="bloom-strength" type="range" min="0" max="1" step="0.01" value="0.42"></label>
+        <p class="control-help">视角参数：角度单位为度；跟随速度单位为每秒响应强度；安全覆盖余量用于避免极限视角露出边缘。</p>
+        <label>滚动俯仰幅度（°） <output id="scroll-pitch-value">6.00</output><input id="scroll-pitch" type="range" min="0" max="8" step="0.1" value="6"></label>
+        <label>鼠标偏航幅度（°） <output id="pointer-yaw-value">5.00</output><input id="pointer-yaw" type="range" min="0" max="7" step="0.1" value="5"></label>
+        <label>鼠标俯仰幅度（°） <output id="pointer-pitch-value">3.00</output><input id="pointer-pitch" type="range" min="0" max="4" step="0.1" value="3"></label>
+        <label>视角跟随速度 <output id="follow-speed-value">6.00</output><input id="follow-speed" type="range" min="2" max="14" step="0.1" value="6"></label>
+        <label>安全覆盖余量 <output id="safe-overscan-value">1.12</output><input id="safe-overscan" type="range" min="1" max="1.4" step="0.01" value="1.12"></label>
       </details>
       <details open class="control-group layers-group">
-        <summary>Layer visibility</summary>
-        <label class="check"><span>Bright Stars</span><input id="star-bright" type="checkbox" checked></label>
-        <label class="check"><span>Medium Stars</span><input id="star-medium" type="checkbox" checked></label>
-        <label class="check"><span>Dust Stars</span><input id="star-dust" type="checkbox" checked></label>
-        <label class="check"><span>Foreground Dust</span><input id="foreground-dust" type="checkbox" checked></label>
-        <label class="check"><span>Front Nebula</span><input id="nebula-front" type="checkbox" checked></label>
-        <label class="check"><span>Mid Nebula</span><input id="nebula-mid" type="checkbox" checked></label>
-        <label class="check"><span>Back Nebula</span><input id="nebula-back" type="checkbox" checked></label>
-        <label class="check"><span>Residual Backdrop</span><input id="residual-backdrop" type="checkbox" checked></label>
+        <summary>图层显示</summary>
+        <label class="check"><span>亮星</span><input id="star-bright" type="checkbox" checked></label>
+        <label class="check"><span>中等星</span><input id="star-medium" type="checkbox" checked></label>
+        <label class="check"><span>微弱星</span><input id="star-dust" type="checkbox" checked></label>
+        <label class="check"><span>前景尘埃</span><input id="foreground-dust" type="checkbox" checked></label>
+        <label class="check"><span>前层星云</span><input id="nebula-front" type="checkbox" checked></label>
+        <label class="check"><span>中层星云</span><input id="nebula-mid" type="checkbox" checked></label>
+        <label class="check"><span>后层星云</span><input id="nebula-back" type="checkbox" checked></label>
+        <label class="check"><span>原图底层</span><input id="residual-backdrop" type="checkbox" checked></label>
       </details>
-      <div class="stats" id="stats">Loading point cloud…</div>
+      <div class="stats" id="stats">正在读取点云…</div>
     </section>
-    <div class="scroll-hint">Scroll or drag Camera progress · move the pointer to explore depth</div>
+    <div class="scroll-hint">滚动或拖动“展示俯仰进度” · 移动指针观察空间深度</div>
   </main>
   <div class="scroll-space" aria-hidden="true"></div>
   <script type="module" src="/src/main.js"></script>
