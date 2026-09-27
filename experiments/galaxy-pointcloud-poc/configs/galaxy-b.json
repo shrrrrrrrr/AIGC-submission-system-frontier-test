@@ -1,0 +1,44 @@
+{
+  "assetId": "galaxy-b",
+  "displayName": "Galaxy B",
+  "sourceImage": "source.png",
+  "worldWidth": 26.0,
+  "thickness": 4.2,
+  "counts": {
+    "stars": 5000,
+    "mediumStars": 20000,
+    "dustStars": 45000,
+    "front": 12000,
+    "mid": 50000,
+    "back": 18000,
+    "foreground": 5000
+  },
+  "camera": {
+    "startZ": 62,
+    "endZ": 16,
+    "targetZStart": -23,
+    "targetZEnd": -34,
+    "focalX": -1.4,
+    "focalY": 0.4,
+    "yawDegrees": 7,
+    "pitchDegrees": 4
+  },
+  "visual": {
+    "depthStrength": 1.18,
+    "thickness": 1.35,
+    "parallax": 1.2,
+    "starSize": 1.0,
+    "nebulaSize": 0.78,
+    "pointDensity": 0.9,
+    "flightSpeed": 1.2,
+    "starIntensity": 1.15,
+    "foregroundCleanup": 0.9,
+    "foregroundSoftness": 1.6,
+    "bloomStrength": 0.34,
+    "nebulaIntensity": {
+      "front": 0.48,
+      "mid": 0.9,
+      "back": 0.4
+    }
+  }
+}

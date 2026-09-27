@@ -10,6 +10,10 @@ h1 { margin:9px 0 6px; font-size:clamp(24px,3vw,34px); line-height:1.05; font-we
 p { margin:0 0 13px; color:#b9b0cc; font-size:12px; line-height:1.55; }
 .control-group { border-top:1px solid rgba(224,210,255,.14); padding:9px 0 2px; }
 .control-group summary { cursor:pointer; color:#eeeafd; font-size:11px; font-weight:600; letter-spacing:.04em; margin-bottom:9px; }
+.scene-status { margin:8px 0 0; color:#d2b8ff; font:600 10px/1.4 ui-monospace,SFMono-Regular,monospace; letter-spacing:.04em; }
+.scene-row { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+.scene-button { border:1px solid rgba(224,210,255,.25); color:#d4c8e8; background:rgba(255,255,255,.05); padding:7px 4px; border-radius:8px; cursor:pointer; font-size:10px; }
+.scene-button.active { background:#9c7bd6; color:#160b2b; border-color:#c5a7ff; }
 .mode-row { display:flex; gap:6px; flex-wrap:wrap; }
 .mode { border:1px solid rgba(224,210,255,.28); color:#d4c8e8; background:rgba(255,255,255,.06); padding:7px 10px; border-radius:999px; cursor:pointer; font-size:11px; }
 .mode.active { background:#c5a7ff; color:#160b2b; border-color:#c5a7ff; }

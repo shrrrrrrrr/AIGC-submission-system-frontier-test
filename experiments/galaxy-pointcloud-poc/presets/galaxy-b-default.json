@@ -1,0 +1,44 @@
+{
+  "assetId": "galaxy-b",
+  "name": "GALAXY-B default",
+  "source": "/galaxy/source.png",
+  "mode": "hybrid",
+  "previewProgress": 0.0,
+  "residual": 0.25,
+  "depthStrength": 1.18,
+  "thickness": 1.35,
+  "parallax": 1.2,
+  "morph": 0.0,
+  "starSize": 1.0,
+  "nebulaSize": 0.78,
+  "pointDensity": 0.9,
+  "flightSpeed": 1.2,
+  "starIntensity": 1.15,
+  "foregroundCleanup": 0.9,
+  "foregroundSoftness": 1.6,
+  "bloom": true,
+  "bloomStrength": 0.34,
+  "starVisibility": {
+    "bright": 1,
+    "medium": 1,
+    "dust": 1
+  },
+  "nebulaVisibility": {
+    "front": 1,
+    "mid": 1,
+    "back": 1
+  },
+  "foregroundVisibility": 1,
+  "residualVisible": 1,
+  "starLayers": {
+    "bright": 1,
+    "medium": 0.8,
+    "dust": 0.42
+  },
+  "nebulaIntensity": {
+    "front": 0.48,
+    "mid": 0.9,
+    "back": 0.4
+  },
+  "notes": "Initial scene default derived from Galaxy A approved preset and tuned for this source image."
+}

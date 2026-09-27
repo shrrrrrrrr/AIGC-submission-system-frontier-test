@@ -1,0 +1,44 @@
+{
+  "assetId": "galaxy-c",
+  "displayName": "Galaxy C",
+  "sourceImage": "source.png",
+  "worldWidth": 26.0,
+  "thickness": 5.6,
+  "counts": {
+    "stars": 6000,
+    "mediumStars": 26000,
+    "dustStars": 60000,
+    "front": 18000,
+    "mid": 70000,
+    "back": 24000,
+    "foreground": 6500
+  },
+  "camera": {
+    "startZ": 64,
+    "endZ": 14,
+    "targetZStart": -22,
+    "targetZEnd": -36,
+    "focalX": 0.7,
+    "focalY": -1.2,
+    "yawDegrees": 7,
+    "pitchDegrees": 5
+  },
+  "visual": {
+    "depthStrength": 1.28,
+    "thickness": 1.55,
+    "parallax": 1.35,
+    "starSize": 1.02,
+    "nebulaSize": 0.72,
+    "pointDensity": 0.92,
+    "flightSpeed": 1.1,
+    "starIntensity": 1.25,
+    "foregroundCleanup": 0.9,
+    "foregroundSoftness": 1.7,
+    "bloomStrength": 0.38,
+    "nebulaIntensity": {
+      "front": 0.52,
+      "mid": 1.0,
+      "back": 0.48
+    }
+  }
+}

@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser(description='Deterministic image-derived galaxy volume preprocessing.')
     parser.add_argument('--source', type=Path, default=ROOT/'public/galaxy/source.png')
+    parser.add_argument('--output', type=Path, default=None)
+    parser.add_argument('--asset-id', type=str, default='galaxy-a')
+    parser.add_argument('--config-file', type=Path, default=None)
     parser.add_argument('--stars', type=int, default=6000)
     parser.add_argument('--medium-stars', type=int, default=24000)
     parser.add_argument('--dust-stars', type=int, default=60000)
@@ -20,7 +23,10 @@ def main():
     parser.add_argument('--thickness', type=float, default=5)
     parser.add_argument('--foreground', type=int, default=7000)
     args = parser.parse_args()
-    out = ROOT/'public/galaxy'; out.mkdir(parents=True, exist_ok=True)
+    out = args.output if args.output else ROOT/'public/galaxy'; out.mkdir(parents=True, exist_ok=True)
+    config = {}
+    if args.config_file and args.config_file.exists():
+        config = json.loads(args.config_file.read_text(encoding='utf-8'))
     rgb, width, height = load_image(args.source)
     stars = detect_stars(rgb, args.stars)
     star_layers = {'bright': stars, 'medium': sample_star_layer(rgb, args.medium_stars, 'medium'), 'dust': sample_star_layer(rgb, args.dust_stars, 'dust')}
@@ -41,13 +47,13 @@ def main():
         p = out/file
         return {'file': file, 'count': count, 'stride': stride, 'fields': fields, 'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}
     metadata = {
-      'formatVersion': 3, 'byteOrder': 'little-endian', 'componentType': 'float32', 'colorSpace': 'linear-srgb', 'seed': SEED,
+      'assetId': args.asset_id, 'formatVersion': 3, 'byteOrder': 'little-endian', 'componentType': 'float32', 'colorSpace': 'linear-srgb', 'seed': SEED,
       'source': {'file':'source.png','width':width,'height':height,'aspect':width/height,'sha256':hashlib.sha256(args.source.read_bytes()).hexdigest()},
       'world': {'width':WORLD_WIDTH,'height':WORLD_WIDTH*height/width,'referenceZ':REFERENCE_Z,'referenceCameraZ':CAMERA_Z},
       'stars': {'layers': {k: asset_info(f'stars-{k}.bin', len(v), 8, ['x','y','z','size','r','g','b','emissive']) for k,v in star_layers.items()}, 'count': sum(len(v) for v in star_layers.values())},
       'nebula': {'layers': {k: asset_info(f'nebula-{k}.bin', len(v), 10, ['x','y','z','size','r','g','b','alpha','density','seed']) for k,v in nebula_layers.items()}, 'file':'nebula.bin','count':len(npacked),'stride':10,'thickness':args.thickness},
       'foreground': asset_info('foreground-dust.bin', len(foreground), 8, ['x','y','z','size','r','g','b','alpha']),
-      'residual': {'file':'residual.webp','lossless':True}, 'depthNote':'Artistic single-image reconstruction, not recovered astronomical distances.'
+      'residual': {'file':'residual.webp','lossless':True}, 'config': config, 'depthNote':'Artistic single-image reconstruction, not recovered astronomical distances.'
     }
     (out/'metadata.json').write_text(json.dumps(metadata, indent=2)+'\n', encoding='utf-8')
     print(json.dumps(metadata, indent=2))

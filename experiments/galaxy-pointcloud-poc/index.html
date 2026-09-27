@@ -11,9 +11,19 @@
   <main class="shell">
     <canvas id="galaxy-canvas" aria-label="银河三维点云"></canvas>
     <section class="hud" aria-label="银河点云调试面板">
-      <div class="eyebrow">PHASE 3.5A / IMAGE-DERIVED GALAXY</div>
+      <div class="eyebrow">PHASE 3.6 / MULTI-GALAXY POINT CLOUD</div>
       <h1>银河点云重构</h1>
       <p>从单张摄影图像提取结构，以受限视差观察银河空间厚度。</p>
+      <div class="scene-status" id="scene-loading" hidden>Loading Galaxy A…</div>
+      <details open class="control-group scene-group">
+        <summary>Galaxy scenes</summary>
+        <div class="scene-row" role="group" aria-label="Galaxy scene selector">
+          <button data-asset="galaxy-a" class="scene-button active">Galaxy A</button>
+          <button data-asset="galaxy-b" class="scene-button">Galaxy B</button>
+          <button data-asset="galaxy-c" class="scene-button">Galaxy C</button>
+          <button data-asset="galaxy-d" class="scene-button">Galaxy D</button>
+        </div>
+      </details>
       <details open class="control-group view-group">
         <summary>View mode</summary>
         <div class="mode-row" role="group" aria-label="显示模式">
@@ -41,7 +51,7 @@
         <label>Foreground cleanup <output id="foreground-cleanup-value">0.70</output><input id="foreground-cleanup" type="range" min="0" max="1" step="0.01" value="0.7"></label>
         <label>Foreground softness <output id="foreground-softness-value">1.00</output><input id="foreground-softness" type="range" min="0.5" max="2" step="0.01" value="1"></label>
         <label class="check"><span>Bloom</span><input id="bloom" type="checkbox" checked></label>
-        <label>Bloom strength <output id="bloom-value">0.42</output><input id="bloom-strength" type="range" min="0" max="1" step="0.01" value="0.42"></label>
+        <label>Bloom strength <output id="bloom-strength-value">0.42</output><input id="bloom-strength" type="range" min="0" max="1" step="0.01" value="0.42"></label>
       </details>
       <details open class="control-group layers-group">
         <summary>Layer visibility</summary>

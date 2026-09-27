@@ -1,0 +1,44 @@
+{
+  "assetId": "galaxy-d",
+  "name": "GALAXY-D default",
+  "source": "/galaxy/source.png",
+  "mode": "hybrid",
+  "previewProgress": 0.0,
+  "residual": 0.25,
+  "depthStrength": 1.12,
+  "thickness": 1.2,
+  "parallax": 1.0,
+  "morph": 0.0,
+  "starSize": 0.92,
+  "nebulaSize": 0.62,
+  "pointDensity": 0.88,
+  "flightSpeed": 0.95,
+  "starIntensity": 1.05,
+  "foregroundCleanup": 0.95,
+  "foregroundSoftness": 1.9,
+  "bloom": true,
+  "bloomStrength": 0.28,
+  "starVisibility": {
+    "bright": 1,
+    "medium": 1,
+    "dust": 1
+  },
+  "nebulaVisibility": {
+    "front": 1,
+    "mid": 1,
+    "back": 1
+  },
+  "foregroundVisibility": 1,
+  "residualVisible": 1,
+  "starLayers": {
+    "bright": 1,
+    "medium": 0.8,
+    "dust": 0.42
+  },
+  "nebulaIntensity": {
+    "front": 0.42,
+    "mid": 0.82,
+    "back": 0.4
+  },
+  "notes": "Initial scene default derived from Galaxy A approved preset and tuned for this source image."
+}

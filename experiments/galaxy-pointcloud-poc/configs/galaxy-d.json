@@ -1,0 +1,44 @@
+{
+  "assetId": "galaxy-d",
+  "displayName": "Galaxy D",
+  "sourceImage": "source.png",
+  "worldWidth": 26.0,
+  "thickness": 4.6,
+  "counts": {
+    "stars": 6000,
+    "mediumStars": 26000,
+    "dustStars": 65000,
+    "front": 16000,
+    "mid": 65000,
+    "back": 24000,
+    "foreground": 6000
+  },
+  "camera": {
+    "startZ": 62,
+    "endZ": 15,
+    "targetZStart": -23,
+    "targetZEnd": -35,
+    "focalX": 0.2,
+    "focalY": 0.0,
+    "yawDegrees": 6,
+    "pitchDegrees": 4
+  },
+  "visual": {
+    "depthStrength": 1.12,
+    "thickness": 1.2,
+    "parallax": 1.0,
+    "starSize": 0.92,
+    "nebulaSize": 0.62,
+    "pointDensity": 0.88,
+    "flightSpeed": 0.95,
+    "starIntensity": 1.05,
+    "foregroundCleanup": 0.95,
+    "foregroundSoftness": 1.9,
+    "bloomStrength": 0.28,
+    "nebulaIntensity": {
+      "front": 0.42,
+      "mid": 0.82,
+      "back": 0.4
+    }
+  }
+}
