@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { StarCloud } from '../../galaxy-pointcloud-poc/src/StarCloud.js';
 import { NebulaCloud } from '../../galaxy-pointcloud-poc/src/NebulaCloud.js';
 import { ForegroundDust } from '../../galaxy-pointcloud-poc/src/ForegroundDust.js';
-import approved from '../config/approved-visual.json';
+import sharedApproved from '../../galaxy-pointcloud-poc/presets/galaxy-a-approved.json';
+const approved={...sharedApproved,manualMorph:sharedApproved.morph,fixedMorph:Math.min(1,sharedApproved.morph+.85)};
 
 export const assetUrl = (path) => new URL(`${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`, document.baseURI).href;
 export async function readAsset(path, signal, binary = false) {
@@ -19,10 +20,20 @@ export class GalaxyInstance {
     // Fetch only the three approved layers; no residual texture enters the WebGL scene.
     const buffers = await Promise.all(specs.map(s => readAsset(`${base}/${s.file}`, signal, true)));
     signal.throwIfAborted();
-    return new GalaxyInstance(entry, metadata, specs, buffers);
+    let runtime = null;
+    try {runtime={preset:await readAsset(entry.preset.replace(/^\//,''),signal)};} catch(error) {if(error.name==='AbortError')throw error;}
+    try {
+      if(!import.meta.env.DEV) return new GalaxyInstance(entry,metadata,specs,buffers,runtime?.preset);
+      const response = await fetch(new URL(`/__galaxy/config/${entry.assetId}`, window.location.origin), { signal });
+      if (response.ok) runtime = await response.json();
+    } catch (error) {
+      if (error.name === 'AbortError') throw error;
+      console.warn(`主页未读取 ${entry.assetId} 的最新预设，使用共同视觉基准`, error);
+    }
+    return new GalaxyInstance(entry, metadata, specs, buffers, runtime?.preset, runtime?.revision);
   }
-  constructor(entry, metadata, specs, buffers) {
-    this.entry = entry; this.metadata = metadata;
+  constructor(entry, metadata, specs, buffers, runtimePreset = null, revision = null) {
+    this.entry = entry; this.metadata = metadata; this.revision = revision; this.runtimePreset = runtimePreset;
     this.scene = new THREE.Scene(); this.scene.background = new THREE.Color('#02030d');
     this.camera = new THREE.PerspectiveCamera(46, 1, .1, 240);
     this.clouds = [];
@@ -32,9 +43,10 @@ export class GalaxyInstance {
       this.clouds.push(new ForegroundDust(new Float32Array(buffers[2]), specs[2].count, specs[2].stride));
     } catch (error) { this.dispose(); throw error; }
     this.scene.add(...this.clouds.map(c => c.points));
-    this.params = { ...structuredClone(approved), mode: 'pointcloud', foregroundSize: 1,
-      // Existing cloud update() computes manual + cameraProgress*.85. Pin both inputs.
-      morph: approved.manualMorph, cameraProgress: 1, pointerX: 0, pointerY: 0, projectionScale: 1 };
+    const saved = runtimePreset || approved;
+    this.params = { ...structuredClone(approved), ...structuredClone(saved), mode: 'pointcloud', foregroundSize: 1,
+      // Homepage pins the approved expanded state; scroll never drives morph or camera distance.
+      morph: saved.morph ?? saved.manualMorph ?? approved.manualMorph, cameraProgress: 1, pointerX: 0, pointerY: 0, projectionScale: 1 };
     const config = metadata.config?.camera || {};
     this.target = new THREE.Vector3(config.focalX || 0, config.focalY || 0, config.targetZEnd ?? -35);
     const dz = (config.endZ ?? 12) - this.target.z;
@@ -55,8 +67,8 @@ export class GalaxyInstance {
     const xs = [], ys = [];
     for (let i = 0; i < data.count; i++) {
       const z = data.getZ(i), scale = 50 / Math.max(1, 28 - z);
-      const xyScale = scale * (1 - approved.fixedMorph) + approved.fixedMorph;
-      const finalZ = -22 + (z + 22) * approved.fixedMorph * approved.depthStrength;
+      const xyScale = scale * (1 - Math.min(1,this.params.morph+.85)) + Math.min(1,this.params.morph+.85);
+      const finalZ = -22 + (z + 22) * Math.min(1,this.params.morph+.85) * this.params.depthStrength;
       const distance = this.target.z + this.radius - finalZ;
       xs.push((data.getX(i) * xyScale - this.target.x) / distance);
       ys.push((data.getY(i) * xyScale - this.target.y) / distance);
@@ -66,21 +78,25 @@ export class GalaxyInstance {
     return { left:q(xs,.01), right:q(xs,.99), bottom:q(ys,.01), top:q(ys,.99) };
   }
   resize(width, height, dpr) {
+    this.width = width; this.height = height; this.dpr = dpr;
     const aspect = width / height, b = this.bounds;
     // Wider fixed layout framing. Orbiting the focus cancels most rigid camera rotation;
     // reserve a depth-parallax margin plus breathing, with no scroll-dependent zoom.
-    this.scrollPitchMax = rad(2.1); this.pointerPitchMax = rad(1.6); this.pointerYawMax = rad(3.2);
-    const safeX = Math.max(.04, Math.min(-b.left,b.right) - Math.tan(this.pointerYawMax) * .35 - .008);
-    const safeY = Math.max(.04, Math.min(-b.bottom,b.top) - Math.tan(this.scrollPitchMax + this.pointerPitchMax + Math.abs(this.basePitch)) * .35 - .008);
-    const tanHalf = Math.min(Math.tan(rad(23)), safeX / aspect / 1.06, safeY / 1.06);
+    this.scrollPitchMax = rad(THREE.MathUtils.clamp(Number(this.params.scrollPitchDegrees ?? 6), 0, 8));
+    this.pointerPitchMax = rad(THREE.MathUtils.clamp(Number(this.params.pointerPitchDegrees ?? 3), 0, 4));
+    this.pointerYawMax = rad(THREE.MathUtils.clamp(Number(this.params.pointerYawDegrees ?? 5), 0, 7));
+    const safeOverscan = THREE.MathUtils.clamp(Number(this.params.safeOverscan ?? 1.12), 1, 1.4);
+    const safeX = Math.max(.04, Math.min(-b.left,b.right) - Math.tan(this.pointerYawMax) * .65 - .008);
+    const safeY = Math.max(.04, Math.min(-b.bottom,b.top) - Math.tan(this.scrollPitchMax + this.pointerPitchMax + Math.abs(this.basePitch)) * .65 - .008);
+    const tanHalf = Math.min(Math.tan(rad(23)), safeX / aspect / safeOverscan, safeY / safeOverscan);
     this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanHalf));
     this.camera.aspect = aspect; this.camera.updateProjectionMatrix();
     this.params.projectionScale = height * dpr / (2 * tanHalf);
-    this.framing = { aspect, fov:this.camera.fov, overscan:1.06, radius:this.radius, safeX, safeY };
+    this.framing = { aspect, fov:this.camera.fov, overscan:safeOverscan, radius:this.radius, safeX, safeY, scrollPitchDegrees:THREE.MathUtils.radToDeg(this.scrollPitchMax), pointerYawDegrees:THREE.MathUtils.radToDeg(this.pointerYawMax), pointerPitchDegrees:THREE.MathUtils.radToDeg(this.pointerPitchMax) };
   }
   update(progress, pointer, dt, time, reducedMotion) {
     if (this.localProgress === null || reducedMotion) this.localProgress = progress;
-    else this.localProgress = THREE.MathUtils.damp(this.localProgress, progress, 6, dt);
+    else this.localProgress = THREE.MathUtils.damp(this.localProgress, progress, THREE.MathUtils.clamp(Number(this.params.followSpeed ?? 6), 2, 14), dt);
     this.pitch = this.basePitch + (reducedMotion ? 0 : (this.localProgress * 2 - 1) * this.scrollPitchMax + pointer.y * this.pointerPitchMax);
     this.yaw = reducedMotion ? 0 : pointer.x * this.pointerYawMax;
     const cp = Math.cos(this.pitch);
@@ -88,10 +104,17 @@ export class GalaxyInstance {
     this.camera.lookAt(this.target); // No roll, no distance interpolation, no group transforms.
     for (const cloud of this.clouds) cloud.update(reducedMotion ? 0 : time, this.params);
   }
+  updatePreset(preset, revision = this.revision) {
+    const current = this.localProgress ?? 1;
+    this.params = { ...this.params, ...structuredClone(preset || {}), mode: 'pointcloud', morph: preset?.morph ?? preset?.manualMorph ?? this.params.morph, cameraProgress: 1 };
+    this.runtimePreset = preset; this.revision = revision; this.localProgress = current;
+    this.bounds=this.measureComposition();
+    if (this.width) this.resize(this.width, this.height, this.dpr);
+  }
   debug() {
     return { id:this.entry.assetId, totalPoints:this.totalPoints, enabledPoints:this.enabledPoints, submittedPoints:this.enabledPoints,
       densityRetainedPoints:this.densityRetainedPoints, morph:this.clouds[1].material.uniforms.uMorph.value,
-      radius:this.camera.position.distanceTo(this.target), pitch:THREE.MathUtils.radToDeg(this.pitch), yaw:THREE.MathUtils.radToDeg(this.yaw), framing:this.framing };
+      radius:this.camera.position.distanceTo(this.target), pitch:THREE.MathUtils.radToDeg(this.pitch), yaw:THREE.MathUtils.radToDeg(this.yaw), framing:this.framing, revision:this.revision };
   }
   dispose() { for (const cloud of this.clouds) cloud.dispose(); this.clouds.length = 0; }
 }

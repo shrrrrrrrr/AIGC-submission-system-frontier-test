@@ -1,3 +1,4 @@
+document.body.classList.add('reveal-runtime');
 import './style.css';
 import { news } from './news.js';
 
@@ -142,4 +143,5 @@ new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visi
 new ResizeObserver(resize).observe(stage);
 new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }), { threshold: .12 }).observe(document.querySelector('.hero'));
 document.querySelectorAll('[data-reveal]:not(.hero)').forEach(element => new IntersectionObserver(([entry], observer) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.disconnect(); } }, { threshold: .12 }).observe(element));
+document.querySelectorAll('[data-reveal-group]').forEach(element => new IntersectionObserver(([entry], observer) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.disconnect(); } }, { threshold: .08 }).observe(element));
 resize(); render(); wake();
