@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { nebulaVertex, nebulaFragment } from './shaders/index.js';
 
 export class NebulaCloud {
-  constructor(data, count, stride = 10) {
+  constructor(data, count, layer, stride = 10) {
     this.count = count;
+    this.layer = layer;
     const geometry = new THREE.BufferGeometry();
     const position = new Float32Array(count * 3);
     const size = new Float32Array(count);
@@ -27,7 +28,7 @@ export class NebulaCloud {
     geometry.setAttribute('aDensity', new THREE.BufferAttribute(density, 1));
     geometry.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
     const material = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uDepthStrength: { value: 1 }, uSize: { value: 1 }, uProjectionScale: { value: 1000 }, uThickness: { value: 1 }, uOpacity: { value: 0.62 }, uPointDensity: { value: 1 } },
+      uniforms: { uTime: { value: 0 }, uDepthStrength: { value: 1 }, uMorph: { value: 0 }, uSize: { value: 1 }, uProjectionScale: { value: 1000 }, uThickness: { value: 1 }, uCameraProgress: { value: 0 }, uParallax: { value: 1 }, uPointer: { value: new THREE.Vector2() }, uIntensity: { value: 1 }, uPointDensity: { value: 1 } },
       vertexShader: nebulaVertex,
       fragmentShader: nebulaFragment,
       transparent: true,
@@ -39,16 +40,22 @@ export class NebulaCloud {
     this.points.frustumCulled = false;
     this.material = material;
     this.geometry = geometry;
+    this.pointerUniform = material.uniforms.uPointer.value;
   }
   update(time, params) {
-    this.material.uniforms.uTime.value = time;
-    this.material.uniforms.uDepthStrength.value = params.depthStrength;
-    this.material.uniforms.uSize.value = params.nebulaSize;
-    this.material.uniforms.uProjectionScale.value = params.projectionScale;
-    this.material.uniforms.uThickness.value = params.thickness;
-    this.material.uniforms.uOpacity.value = params.nebulaOpacity;
-    this.material.uniforms.uPointDensity.value = params.pointDensity;
-    this.points.visible = params.mode !== 'original';
+    const u = this.material.uniforms;
+    u.uTime.value = time;
+    u.uDepthStrength.value = params.depthStrength;
+    u.uMorph.value = params.morph + params.cameraProgress * 0.85;
+    u.uSize.value = params.nebulaSize;
+    u.uProjectionScale.value = params.projectionScale;
+    u.uThickness.value = params.thickness;
+    u.uCameraProgress.value = params.cameraProgress;
+    u.uParallax.value = params.parallax;
+    this.pointerUniform.set(params.pointerX, params.pointerY);
+    u.uIntensity.value = params.nebulaIntensity[this.layer];
+    u.uPointDensity.value = params.pointDensity;
+    this.points.visible = params.mode !== 'original' && params.nebulaVisibility[this.layer] > 0;
   }
   dispose() { this.geometry.dispose(); this.material.dispose(); }
 }

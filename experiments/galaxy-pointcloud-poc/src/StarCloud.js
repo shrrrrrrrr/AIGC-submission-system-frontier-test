@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { starVertex, starFragment } from './shaders/index.js';
 
 export class StarCloud {
-  constructor(data, count, stride = 8) {
+  constructor(data, count, layer, stride = 8) {
     this.count = count;
+    this.layer = layer;
     const geometry = new THREE.BufferGeometry();
     const position = new Float32Array(count * 3);
     const size = new Float32Array(count);
@@ -24,7 +25,7 @@ export class StarCloud {
     geometry.setAttribute('aEmissive', new THREE.BufferAttribute(emissive, 1));
     geometry.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
     const material = new THREE.ShaderMaterial({
-      uniforms: { uProjectionScale: { value: 1000 }, uTime: { value: 0 }, uDepthStrength: { value: 1 }, uSize: { value: 1 } },
+      uniforms: { uTime: { value: 0 }, uDepthStrength: { value: 1 }, uMorph: { value: 0 }, uSize: { value: 1 }, uProjectionScale: { value: 1000 }, uCameraProgress: { value: 0 }, uParallax: { value: 1 }, uPointer: { value: new THREE.Vector2() }, uIntensity: { value: 1 } },
       vertexShader: starVertex,
       fragmentShader: starFragment,
       transparent: true,
@@ -36,13 +37,20 @@ export class StarCloud {
     this.points.frustumCulled = false;
     this.material = material;
     this.geometry = geometry;
+    this.pointerUniform = material.uniforms.uPointer.value;
   }
   update(time, params) {
-    this.material.uniforms.uProjectionScale.value = params.projectionScale;
-    this.material.uniforms.uTime.value = time;
-    this.material.uniforms.uDepthStrength.value = params.depthStrength;
-    this.material.uniforms.uSize.value = params.starSize;
-    this.points.visible = params.mode !== 'original';
+    const u = this.material.uniforms;
+    u.uTime.value = time;
+    u.uDepthStrength.value = params.depthStrength;
+    u.uMorph.value = params.morph + params.cameraProgress * 0.85;
+    u.uSize.value = params.starSize;
+    u.uProjectionScale.value = params.projectionScale;
+    u.uCameraProgress.value = params.cameraProgress;
+    u.uParallax.value = params.parallax;
+    this.pointerUniform.set(params.pointerX, params.pointerY);
+    u.uIntensity.value = params.starIntensity * params.starLayers[this.layer];
+    this.points.visible = params.mode !== 'original' && params.starLayers[this.layer] > 0;
   }
   dispose() { this.geometry.dispose(); this.material.dispose(); }
 }

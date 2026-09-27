@@ -1,8 +1,9 @@
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "byteOrder": "little-endian",
   "componentType": "float32",
   "colorSpace": "linear-srgb",
+  "seed": 20260927,
   "source": {
     "file": "source.png",
     "width": 501,
@@ -13,47 +14,129 @@
   "world": {
     "width": 26.0,
     "height": 38.92215568862275,
-    "referenceZ": -22,
-    "referenceCameraZ": 28
+    "referenceZ": -22.0,
+    "referenceCameraZ": 28.0
   },
-  "seed": 20260927,
   "stars": {
-    "file": "stars.bin",
-    "count": 2322,
-    "stride": 8,
-    "fields": [
-      "x",
-      "y",
-      "z",
-      "size",
-      "r",
-      "g",
-      "b",
-      "emissive"
-    ],
-    "catalog": "star-catalog.csv",
-    "bytes": 74304,
-    "sha256": "8b8fd57da84c2d83ed4ab285588b73a07c64b393e480936d2bdf3fb9ad16de55"
+    "layers": {
+      "bright": {
+        "file": "stars-bright.bin",
+        "count": 2322,
+        "stride": 8,
+        "fields": [
+          "x",
+          "y",
+          "z",
+          "size",
+          "r",
+          "g",
+          "b",
+          "emissive"
+        ],
+        "bytes": 74304,
+        "sha256": "8b8fd57da84c2d83ed4ab285588b73a07c64b393e480936d2bdf3fb9ad16de55"
+      },
+      "medium": {
+        "file": "stars-medium.bin",
+        "count": 24000,
+        "stride": 8,
+        "fields": [
+          "x",
+          "y",
+          "z",
+          "size",
+          "r",
+          "g",
+          "b",
+          "emissive"
+        ],
+        "bytes": 768000,
+        "sha256": "7e2d76e56e89dc1644258ea975a71d95552df44acc165d661544b28a94e1650d"
+      },
+      "dust": {
+        "file": "stars-dust.bin",
+        "count": 60000,
+        "stride": 8,
+        "fields": [
+          "x",
+          "y",
+          "z",
+          "size",
+          "r",
+          "g",
+          "b",
+          "emissive"
+        ],
+        "bytes": 1920000,
+        "sha256": "db03f81c8b1a93d68e53c429426c60086ed2c6561d05d46b6e5ff69916a9fbc8"
+      }
+    },
+    "count": 86322
   },
   "nebula": {
+    "layers": {
+      "front": {
+        "file": "nebula-front.bin",
+        "count": 18000,
+        "stride": 10,
+        "fields": [
+          "x",
+          "y",
+          "z",
+          "size",
+          "r",
+          "g",
+          "b",
+          "alpha",
+          "density",
+          "seed"
+        ],
+        "bytes": 720000,
+        "sha256": "5654ecf4950304293cffb4e3caa96e69ed8788591d7c1f422b4b873d4788fdba"
+      },
+      "mid": {
+        "file": "nebula-mid.bin",
+        "count": 65000,
+        "stride": 10,
+        "fields": [
+          "x",
+          "y",
+          "z",
+          "size",
+          "r",
+          "g",
+          "b",
+          "alpha",
+          "density",
+          "seed"
+        ],
+        "bytes": 2600000,
+        "sha256": "fcd30bd557e83d8e36be35da54fc2b15c8b376fc0faee97e7304517ce2101b0e"
+      },
+      "back": {
+        "file": "nebula-back.bin",
+        "count": 22000,
+        "stride": 10,
+        "fields": [
+          "x",
+          "y",
+          "z",
+          "size",
+          "r",
+          "g",
+          "b",
+          "alpha",
+          "density",
+          "seed"
+        ],
+        "bytes": 880000,
+        "sha256": "720c235c36927c5e5f70bdb13d670b6f7599a073e2205574cf48e4c1a3f2219b"
+      }
+    },
     "file": "nebula.bin",
-    "count": 100000,
+    "count": 105000,
     "stride": 10,
-    "fields": [
-      "x",
-      "y",
-      "z",
-      "size",
-      "r",
-      "g",
-      "b",
-      "alpha",
-      "density",
-      "seed"
-    ],
-    "thickness": 5,
-    "bytes": 4000000,
-    "sha256": "95d4d940d6b69856ead1a8f9bc8d35678b88ee76157ad385d5cca2a048250d9e"
+    "thickness": 5
   },
   "residual": {
     "file": "residual.webp",

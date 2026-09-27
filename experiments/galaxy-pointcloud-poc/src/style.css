@@ -16,6 +16,8 @@ p { margin:0 0 18px; color:#b9b0cc; font-size:13px; line-height:1.65; }
 .controls output { color:#eeeafd; font-variant-numeric:tabular-nums; }
 .controls input[type=range] { grid-column:1/-1; width:100%; accent-color:#c9aaff; }
 .check { display:flex !important; align-items:center; justify-content:space-between; }
+.layer-toggles { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px 8px; color:#a79db8; font-size:10px; padding-top:5px; }
+.layer-toggles > span { grid-column:1/-1; color:#d0c7dc; }
 .check input { accent-color:#c9aaff; }
 .stats { margin-top:15px; padding-top:12px; border-top:1px solid rgba(224,210,255,.12); color:#958aa8; font:10px/1.55 ui-monospace,SFMono-Regular,monospace; }
 .scroll-hint { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); color:#887f98; font-size:11px; letter-spacing:.04em; text-align:center; z-index:2; white-space:nowrap; }
