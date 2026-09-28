@@ -88,7 +88,12 @@ export class GalaxyInstance {
     const safeOverscan = THREE.MathUtils.clamp(Number(this.params.safeOverscan ?? 1.12), 1, 1.4);
     const safeX = Math.max(.04, Math.min(-b.left,b.right) - Math.tan(this.pointerYawMax) * .65 - .008);
     const safeY = Math.max(.04, Math.min(-b.bottom,b.top) - Math.tan(this.scrollPitchMax + this.pointerPitchMax + Math.abs(this.basePitch)) * .65 - .008);
-    const tanHalf = Math.min(Math.tan(rad(23)), safeX / aspect / safeOverscan, safeY / safeOverscan);
+    // Fit the complete composition in both axes. The previous min() selected
+    // the narrowest axis, which made tall galaxies look heavily cropped on
+    // the homepage. Presentation framing is allowed to open the FOV so the
+    // approved point-cloud composition remains visible with deep-space margin.
+    const requiredTanHalf = Math.max(safeX / aspect, safeY) / safeOverscan;
+    const tanHalf = Math.min(Math.tan(rad(42)), Math.max(Math.tan(rad(18)), requiredTanHalf));
     this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanHalf));
     this.camera.aspect = aspect; this.camera.updateProjectionMatrix();
     this.params.projectionScale = height * dpr / (2 * tanHalf);

@@ -1,6 +1,6 @@
 # 四银河主页实验
 
-本实验位于 `experiments/galaxy-homepage/`，当前分支为 `experiment/galaxy-homepage`。它使用 `experiments/galaxy-pointcloud-poc/` 中的四个 image-derived 银河资产，不修改 `experiments/film-orbit-atmosphere/`。
+本实验位于 `experiments/galaxy-homepage/`，当前分支为 `experiment/galaxy-homepage`。它使用 `experiments/galaxy-pointcloud-poc/` 中的五个 image-derived 银河资产，不修改 `experiments/film-orbit-atmosphere/`。
 
 ## 启动预览
 
@@ -24,12 +24,15 @@ npm run dev -- --host 127.0.0.1 --port 5198
 
 ## 资产与预设
 
-四个资产位于 `experiments/galaxy-pointcloud-poc/public/galaxies/galaxy-a` 到 `galaxy-d`。共享预设位于 `experiments/galaxy-pointcloud-poc/presets/`：
+五个资产位于 `experiments/galaxy-pointcloud-poc/public/galaxies/galaxy-a` 到 `galaxy-e`。共享预设位于 `experiments/galaxy-pointcloud-poc/presets/`：
 
 - `galaxy-a-approved.json`
 - `galaxy-b-default.json`
 - `galaxy-c-default.json`
 - `galaxy-d-default.json`
+- `galaxy-e-default.json`
+
+主页章节分配为：Galaxy A（Hero）、Galaxy E（大会动态与资讯胶卷）、Galaxy B（单元介绍与主题）、Galaxy C（时间节点与评审）、Galaxy D（投稿说明与最终投稿）。作品要求标题及细则是独立的不透明阅读区，不占用银河章节。
 
 调参页的“保存并同步主页”只针对本地开发预览。它通过本地 Vite 接口校验当前 `assetId` 和版本号后，原子写入对应预设并生成上一版本 `.bak`；主页不会刷新，也不会重置当前滚动位置。生产构建不提供预设写入接口。
 
@@ -47,4 +50,4 @@ npm run dev -- --host 127.0.0.1 --port 5198
 
 ## 回退基线
 
-本轮修改前的可回退基线为 commit `544f686c0a3c00f35f8ca06437594e8253fead10`。回退前请先保存工作区中尚未提交的个人预设调整。
+本轮修改前的可回退基线为 commit `76eb9fe`（完整提交可用 `git log` 查看）。回退前请先保存工作区中尚未提交的个人预设调整。
