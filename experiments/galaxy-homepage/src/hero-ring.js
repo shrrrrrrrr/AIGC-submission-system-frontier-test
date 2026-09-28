@@ -3,13 +3,13 @@ const ring = document.querySelector('.hero-ring');
 if (hero && ring) {
   const phrase = '生成式VR单元投稿';
   const tracks = [...ring.querySelectorAll('.ring-word-track')];
-  const letters = tracks.flatMap((track) => phrase.split('').map((character, index) => {
+  const letters = tracks.flatMap((track, trackIndex) => phrase.split('').map((character, index) => {
     const element = document.createElement('span');
     element.className = 'ring-letter';
     element.textContent = character;
     element.setAttribute('aria-hidden', 'true');
     track.append(element);
-    return { element, index, phase: Number(track.dataset.ringPhase || 0) };
+    return { element, index, trackIndex, phase: Number(track.dataset.ringPhase || 0) };
   }));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let angle = 0;
@@ -24,16 +24,22 @@ if (hero && ring) {
   let lastTime = 0;
   let visible = true;
   let raf = 0;
-  const baseSpeed = 4.5;
+  const baseSpeed = 7;
   const maxSpeed = 72;
 
   function updateRing() {
     const radiusX = Math.max(108, Math.min(250, ring.clientWidth * .39));
-    const radiusY = Math.max(58, Math.min(145, ring.clientHeight * .30));
+    const radiusY = Math.max(78, Math.min(190, ring.clientHeight * .34));
     const depthRadius = Math.max(20, Math.min(72, ring.clientWidth * .10));
     ring.style.transform = `rotateX(${61 + pointerCurrentY * 10}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(-10deg)`;
-    for (const { element, index, phase } of letters) {
-      const orbit = angle + phase + index * (360 / phrase.length);
+    const arcStep = Math.min(14, 122 / Math.max(1, phrase.length - 1));
+    for (const { element, index, trackIndex, phase } of letters) {
+      // Each layer is one complete title. The front title reads left to right
+      // across the near arc; the rear title uses the opposite arc direction
+      // so it also reads left to right instead of appearing interleaved.
+      const center = angle + phase + 90;
+      const direction = trackIndex === 0 ? -1 : 1;
+      const orbit = center + (index - (phrase.length - 1) / 2) * arcStep * direction;
       const radians = orbit * Math.PI / 180;
       const depth = (Math.sin(radians) + 1) * .5;
       const x = Math.cos(radians) * radiusX;
