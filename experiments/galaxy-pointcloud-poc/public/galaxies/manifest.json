@@ -81,6 +81,26 @@
         "foreground": 6000,
         "total": 203847
       }
+    },
+    {
+      "assetId": "galaxy-e",
+      "displayName": "Galaxy E",
+      "directory": "galaxies/galaxy-e",
+      "preset": "/presets/galaxy-e-default.json",
+      "originalFilename": "codex-clipboard-1bf86629-d4cf-4b79-aa2a-579e3a8f9c91.png",
+      "source": {
+        "file": "source.png",
+        "width": 500,
+        "height": 750,
+        "aspect": 0.6666666666666666,
+        "sha256": "362f380b8449c76184e9aa53169b744e98488ba330efc432484d42411d313914"
+      },
+      "pointCounts": {
+        "stars": 85257,
+        "nebula": 105000,
+        "foreground": 7000,
+        "total": 197257
+      }
     }
   ]
 }

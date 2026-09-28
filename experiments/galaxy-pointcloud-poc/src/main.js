@@ -17,7 +17,7 @@ const bindings = [
   ['scroll-pitch', 'scrollPitchDegrees'], ['pointer-yaw', 'pointerYawDegrees'], ['pointer-pitch', 'pointerPitchDegrees'], ['follow-speed', 'followSpeed'], ['safe-overscan', 'safeOverscan']
 ];
 const format = (v) => Number(v).toFixed(2);
-const assetName = (id) => ({ 'galaxy-a': '银河 A', 'galaxy-b': '银河 B', 'galaxy-c': '银河 C', 'galaxy-d': '银河 D' }[id] || id || '银河');
+const assetName = (id) => ({ 'galaxy-a': '银河 A', 'galaxy-b': '银河 B', 'galaxy-c': '银河 C', 'galaxy-d': '银河 D', 'galaxy-e': '银河 E' }[id] || id || '银河');
 
 function setSaveState(text, type = '') {
   saveState.textContent = text;
@@ -43,7 +43,7 @@ function syncUi(clean = true) {
   $('foreground-dust').checked = params.foregroundVisibility > 0;
   $('residual-backdrop').checked = params.residualVisible > 0;
   for (const button of document.querySelectorAll('[data-asset]')) button.classList.toggle('active', button.dataset.asset === scene.assetId);
-  sceneCurrent.textContent = `当前：${assetName(scene.assetId)} · 可用快捷键 1–4`;
+  sceneCurrent.textContent = `当前：${assetName(scene.assetId)} · 可用快捷键 1–5`;
   if (clean) {
     dirty = false; saveButton.disabled = false;
     setSaveState(lastSavedAt ? `已保存 · ${lastSavedAt}` : '已读取当前预设', 'saved');
@@ -65,7 +65,7 @@ for (const button of document.querySelectorAll('[data-mode]')) button.addEventLi
 for (const button of document.querySelectorAll('[data-asset]')) button.addEventListener('click', () => scene.switchAsset(button.dataset.asset));
 window.addEventListener('keydown', (event) => {
   if (event.target.matches('input, textarea, select, button')) return;
-  const assetId = { '1': 'galaxy-a', '2': 'galaxy-b', '3': 'galaxy-c', '4': 'galaxy-d' }[event.key];
+  const assetId = { '1': 'galaxy-a', '2': 'galaxy-b', '3': 'galaxy-c', '4': 'galaxy-d', '5': 'galaxy-e' }[event.key];
   if (assetId) document.querySelector(`[data-asset="${assetId}"]`)?.click();
 });
 for (const [id, layer] of [['star-bright','bright'], ['star-medium','medium'], ['star-dust','dust']]) $(id).addEventListener('change', (event) => { scene.updateParams({ starVisibility: { [layer]: event.target.checked ? 1 : 0 } }); markDirty(); });

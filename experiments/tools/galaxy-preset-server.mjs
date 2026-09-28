@@ -5,12 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 const toolDir = dirname(fileURLToPath(import.meta.url));
 const presetsDir = resolve(toolDir, '../galaxy-pointcloud-poc/presets');
-const allowedAssets = new Set(['galaxy-a', 'galaxy-b', 'galaxy-c', 'galaxy-d']);
+const allowedAssets = new Set(['galaxy-a', 'galaxy-b', 'galaxy-c', 'galaxy-d', 'galaxy-e']);
 const presetFiles = {
   'galaxy-a': 'galaxy-a-approved.json',
   'galaxy-b': 'galaxy-b-default.json',
   'galaxy-c': 'galaxy-c-default.json',
-  'galaxy-d': 'galaxy-d-default.json'
+  'galaxy-d': 'galaxy-d-default.json',
+  'galaxy-e': 'galaxy-e-default.json'
 };
 const allowedOrigins = new Set([
   'http://127.0.0.1:5197', 'http://127.0.0.1:5198',
