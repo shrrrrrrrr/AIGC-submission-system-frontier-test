@@ -61,11 +61,13 @@ if (hero && ring) {
   }
 
   function drawTextureSlice(texture, slice, x0, x1, y, height, mirrored, alpha) {
-    const sliceCount = 112;
+    const sliceCount = 512;
     const sourceWidth = texture.width / sliceCount;
     const sourceLeft = mirrored ? texture.width - (slice + 1) * sourceWidth : slice * sourceWidth;
-    const width = Math.max(1, Math.abs(x1 - x0) + 1.4);
-    const left = Math.min(x0, x1) - .7;
+    // Overlap neighboring samples slightly so antialiasing never exposes a
+    // vertical seam when the texture is compressed around the cylinder.
+    const width = Math.max(1, Math.abs(x1 - x0) + 2.4);
+    const left = Math.min(x0, x1) - 1.2;
     const flip = (x1 < x0) !== mirrored;
     context.save();
     context.globalAlpha = alpha;
@@ -106,7 +108,7 @@ if (hero && ring) {
     const radiusZ = Math.min(520, Math.max(width * .22, titleHeight * .65 / Math.sin(cameraPitch)));
     const pitchOffset = radiusZ * Math.sin(cameraPitch);
     const span = 160 * Math.PI / 180;
-    const slices = 112;
+    const slices = 512;
     const projected = [];
     for (const [texture, phase] of [[textures.front, 0], [textures.back, Math.PI]]) {
       for (let slice = 0; slice < slices; slice += 1) {
@@ -119,7 +121,11 @@ if (hero && ring) {
         const x1 = centerX + Math.sin(end) * radiusX;
         const scale = (.78 + depth * .25) * (phase ? .9 : 1);
         const sliceHeight = titleHeight * scale;
-        projected.push({ texture, slice, x0, x1, y: centerY - z * pitchOffset - sliceHeight / 2, sliceHeight, z, alpha: .24 + depth * .76 });
+        // Keep each complete texture visually continuous. Depth is already
+        // expressed by the cylinder's scale and horizontal compression; a
+        // per-slice alpha ramp would make the border look like broken bands.
+        const alpha = phase ? .52 + depth * .18 : .98;
+        projected.push({ texture, slice, x0, x1, y: centerY - z * pitchOffset - sliceHeight / 2, sliceHeight, z, alpha });
       }
     }
     projected.sort((a, b) => a.z - b.z);
