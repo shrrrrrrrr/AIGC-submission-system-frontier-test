@@ -59,3 +59,7 @@ body:not(.reveal-runtime) [data-reveal],body:not(.reveal-runtime) [data-reveal-g
 .hero-center .hero-actions>a:hover,.galaxy-chapter .source-band .button-link:hover,.galaxy-chapter .final-cta .button-link:hover{box-shadow:0 16px 30px #00000065!important;transform:translate(-2px,-5px)}
 .hero-center .hero-actions>a:hover::before,.galaxy-chapter .source-band .button-link:hover::before,.galaxy-chapter .final-cta .button-link:hover::before{border-color:#fff;background:#d8caff2b}
 .hero-center .hero-actions>a:hover::after,.galaxy-chapter .source-band .button-link:hover::after,.galaxy-chapter .final-cta .button-link:hover::after{border-color:#fff;background:#aa8de32e}
+
+/* Join both side faces to the same front-rectangle vertices. */
+.hero-center .hero-actions>a::before,.galaxy-chapter .source-band .button-link::before,.galaxy-chapter .final-cta .button-link::before{top:-8px;left:0;width:calc(100% + 8px);height:8px;border:1px solid #e8e0ff72;border-bottom:0;background:#cbb8ff14;transform:none;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.hero-center .hero-actions>a::after,.galaxy-chapter .source-band .button-link::after,.galaxy-chapter .final-cta .button-link::after{top:0;left:-8px;width:8px;height:calc(100% + 8px);border:1px solid #e8e0ff72;border-right:0;background:#9d84db18;transform:none;clip-path:polygon(100% 0,100% calc(100% - 8px),0 100%,0 8px)}
