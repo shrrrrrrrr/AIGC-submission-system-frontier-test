@@ -25,8 +25,8 @@ if (hero && ring) {
   let raf = 0;
   const baseSpeed = 7;
   const maxSpeed = 72;
-  const textureWidth = 2048;
-  const textureHeight = 320;
+  const textureWidth = 4096;
+  const textureHeight = 640;
 
   function makeTexture(target, fill, stroke) {
     target.width = textureWidth;
@@ -34,7 +34,7 @@ if (hero && ring) {
     const textureContext = target.getContext('2d');
     const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--top-display').trim() || 'DeyiHei, sans-serif';
     textureContext.clearRect(0, 0, textureWidth, textureHeight);
-    let fontSize = 248;
+    let fontSize = 496;
     textureContext.font = `800 ${fontSize}px ${fontFamily}`;
     const measuredWidth = textureContext.measureText(phrase).width;
     if (measuredWidth > textureWidth * .92) {
@@ -44,9 +44,11 @@ if (hero && ring) {
     textureContext.textAlign = 'center';
     textureContext.textBaseline = 'middle';
     textureContext.lineJoin = 'round';
-    textureContext.lineWidth = 10;
-    textureContext.shadowColor = fill === '#b5a8d8' ? '#9d86df88' : '#ffffff66';
-    textureContext.shadowBlur = 18;
+    textureContext.lineWidth = 20;
+    // The border itself supplies the separation from the galaxy. Avoid a
+    // glow pass here: it softens the Deyi Hei edges after cylinder sampling.
+    textureContext.shadowColor = 'transparent';
+    textureContext.shadowBlur = 0;
     textureContext.strokeStyle = stroke;
     textureContext.fillStyle = fill;
     textureContext.strokeText(phrase, textureWidth / 2, textureHeight / 2 + 8);
