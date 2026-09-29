@@ -34,7 +34,13 @@ if (hero && ring) {
     const textureContext = target.getContext('2d');
     const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--top-display').trim() || 'DeyiHei, sans-serif';
     textureContext.clearRect(0, 0, textureWidth, textureHeight);
-    textureContext.font = `800 224px ${fontFamily}`;
+    let fontSize = 248;
+    textureContext.font = `800 ${fontSize}px ${fontFamily}`;
+    const measuredWidth = textureContext.measureText(phrase).width;
+    if (measuredWidth > textureWidth * .92) {
+      fontSize *= (textureWidth * .92) / measuredWidth;
+      textureContext.font = `800 ${fontSize}px ${fontFamily}`;
+    }
     textureContext.textAlign = 'center';
     textureContext.textBaseline = 'middle';
     textureContext.lineJoin = 'round';
@@ -88,12 +94,15 @@ if (hero && ring) {
     context.clearRect(0, 0, width, height);
     const motionScroll = reduced.matches ? 0 : scrollCurrent;
     const rotation = -(angle + motionScroll * 72) * Math.PI / 180;
-    const radiusX = Math.min(width * .47, 560);
-    const radiusZ = Math.min(width * .22, 260);
-    const pitchOffset = radiusZ * Math.sin(12 * Math.PI / 180);
     const centerX = width / 2;
     const centerY = height / 2;
-    const titleHeight = Math.min(170, Math.max(74, height * .22));
+    // Fit the largest readable texture into the current viewport while
+    // leaving roughly half to one glyph of breathing room between faces.
+    const titleHeight = Math.min(196, Math.max(90, width * .15, height * .30));
+    const radiusX = Math.min(width * .47, 560);
+    const cameraPitch = 14 * Math.PI / 180;
+    const radiusZ = Math.min(520, Math.max(width * .22, titleHeight * .65 / Math.sin(cameraPitch)));
+    const pitchOffset = radiusZ * Math.sin(cameraPitch);
     const span = 160 * Math.PI / 180;
     const slices = 112;
     const projected = [];
@@ -120,7 +129,7 @@ if (hero && ring) {
     const motionScroll = reduced.matches ? 0 : scrollCurrent;
     // The CSS transform supplies the small camera motion. The canvas itself
     // is a single texture projection onto one invisible Y-axis cylinder.
-    ring.style.transform = `rotateX(${8 + motionScroll * 14}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(${-5 + motionScroll * 8}deg) scale(${(1 - motionScroll * .36).toFixed(3)})`;
+    ring.style.transform = `rotateX(${8 + motionScroll * 14}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(${-5 + motionScroll * 8}deg) scale(${(1 - motionScroll * .5).toFixed(3)})`;
     canvas.style.transform = `rotateX(${pointerCurrentY * 7}deg)`;
     drawCylinder();
   }
