@@ -62,4 +62,4 @@ body:not(.reveal-runtime) [data-reveal],body:not(.reveal-runtime) [data-reveal-g
 
 /* Join both side faces to the same front-rectangle vertices. */
 .hero-center .hero-actions>a::before,.galaxy-chapter .source-band .button-link::before,.galaxy-chapter .final-cta .button-link::before{top:-8px;left:0;width:calc(100% + 8px);height:8px;border:1px solid #e8e0ff72;border-bottom:0;background:#cbb8ff14;transform:none;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
-.hero-center .hero-actions>a::after,.galaxy-chapter .source-band .button-link::after,.galaxy-chapter .final-cta .button-link::after{top:0;left:-8px;width:8px;height:calc(100% + 8px);border:1px solid #e8e0ff72;border-right:0;background:#9d84db18;transform:none;clip-path:polygon(100% 0,100% calc(100% - 8px),0 100%,0 8px)}
+.hero-center .hero-actions>a::after,.galaxy-chapter .source-band .button-link::after,.galaxy-chapter .final-cta .button-link::after{top:-8px;left:auto;right:-8px;width:8px;height:calc(100% + 8px);border:1px solid #e8e0ff72;border-left:0;background:#9d84db18;transform:none;clip-path:polygon(0 8px,100% 0,100% calc(100% - 8px),0 100%)}
