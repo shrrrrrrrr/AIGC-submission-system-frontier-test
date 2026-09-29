@@ -28,29 +28,27 @@ if (hero && ring) {
   const maxSpeed = 72;
 
   function updateRing() {
-    // The cylinder axis is vertical. Each track is a complete, readable title
-    // placed on its own horizontal band, with depth following the cylinder's
-    // circular surface rather than interleaving characters from both titles.
-    const cylinderHalfLength = Math.max(150, Math.min(520, ring.clientWidth * .43));
-    const cylinderRadius = Math.max(70, Math.min(190, ring.clientWidth * .18));
-    const cylinderDepth = Math.max(44, Math.min(150, ring.clientWidth * .13));
-    const trackOffset = Math.max(86, Math.min(170, ring.clientHeight * .18));
-    ring.style.transform = `rotateY(${18 + pointerCurrentX * 16}deg) rotateZ(${-10 + pointerCurrentY * 5}deg)`;
+    // The cylinder axis runs left-to-right. Characters retain a readable
+    // horizontal order while their y/z coordinates roll around the surface.
+    const axisHalfLength = Math.max(150, Math.min(520, ring.clientWidth * .43));
+    const radius = Math.max(70, Math.min(220, ring.clientHeight * .34));
+    const depthRadius = Math.max(44, Math.min(150, ring.clientWidth * .13));
+    ring.style.perspective = `${ring.clientWidth * 2.4}px`;
+    ring.style.transform = 'none';
+    for (const track of tracks) {
+      track.style.transform = `rotateX(${-22 + pointerCurrentY * 8}deg) rotateY(${pointerCurrentX * 12}deg)`;
+    }
     for (const { element, index, phase } of letters) {
-      const u = (index - (phrase.length - 1) / 2) / ((phrase.length - 1) / 2);
-      const baseAngle = (angle + phase) * Math.PI / 180;
-      const surfaceAngle = baseAngle + u * .46;
-      const x = u * cylinderHalfLength;
-      const y = (phase === 0 ? -trackOffset : trackOffset) + Math.sin(surfaceAngle) * cylinderRadius;
-      const z = Math.cos(surfaceAngle) * cylinderDepth;
-      const depth = (z / cylinderDepth + 1) * .5;
-      const surfaceTilt = Math.sin(surfaceAngle) * 12;
-      const scale = .86 + depth * .14;
-      element.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, ${z.toFixed(2)}px) rotateX(${surfaceTilt.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-      element.style.opacity = String(.32 + depth * .68);
-      element.style.filter = `blur(${((1 - depth) * 1.2).toFixed(2)}px)`;
-      element.style.zIndex = String(Math.round(depth * 100));
-      element.style.setProperty('--ring-depth', depth.toFixed(3));
+      const trackPhase = phase === 0 ? -58 : 58;
+      const theta = (angle + trackPhase + (index - (phrase.length - 1) / 2) * 24) * Math.PI / 180;
+      const x = ((index - (phrase.length - 1) / 2) / ((phrase.length - 1) / 2)) * axisHalfLength;
+      const y = Math.sin(theta) * radius;
+      const z = Math.cos(theta) * depthRadius;
+      const depth = (Math.cos(theta) + 1) * .5;
+      const surfaceTilt = Math.sin(theta) * 24;
+      element.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, ${z.toFixed(3)}px) rotateX(${surfaceTilt.toFixed(3)}deg)`;
+      element.style.opacity = String(.48 + depth * .52);
+      element.style.filter = 'none';
     }
   }
   function wake() { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(tick); }

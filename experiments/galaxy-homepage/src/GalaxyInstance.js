@@ -110,12 +110,13 @@ export class GalaxyInstance {
     // the narrowest axis, which made tall galaxies look heavily cropped on
     // the homepage. Presentation framing is allowed to open the FOV so the
     // approved point-cloud composition remains visible with deep-space margin.
-    const requiredTanHalf = Math.max(safeX / aspect, safeY) / safeOverscan;
+    const presentationScale = THREE.MathUtils.clamp(Number(this.presentationScale ?? this.metadata?.config?.camera?.presentationScale ?? 1), .72, 1.2);
+    const requiredTanHalf = Math.max(safeX / aspect, safeY) * presentationScale / safeOverscan;
     const tanHalf = Math.min(Math.tan(rad(42)), Math.max(Math.tan(rad(18)), requiredTanHalf));
     this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanHalf));
     this.camera.aspect = aspect; this.camera.updateProjectionMatrix();
     this.params.projectionScale = height * dpr / (2 * tanHalf);
-    this.framing = { aspect, fov:this.camera.fov, overscan:safeOverscan, radius:this.radius, safeX, safeY, scrollPitchDegrees:THREE.MathUtils.radToDeg(this.scrollPitchMax), pointerYawDegrees:THREE.MathUtils.radToDeg(this.pointerYawMax), pointerPitchDegrees:THREE.MathUtils.radToDeg(this.pointerPitchMax) };
+    this.framing = { aspect, fov:this.camera.fov, overscan:safeOverscan, presentationScale, radius:this.radius, safeX, safeY, scrollPitchDegrees:THREE.MathUtils.radToDeg(this.scrollPitchMax), pointerYawDegrees:THREE.MathUtils.radToDeg(this.pointerYawMax), pointerPitchDegrees:THREE.MathUtils.radToDeg(this.pointerPitchMax) };
   }
   update(progress, pointer, dt, time, reducedMotion) {
     if (this.localProgress === null || reducedMotion) this.localProgress = progress;
