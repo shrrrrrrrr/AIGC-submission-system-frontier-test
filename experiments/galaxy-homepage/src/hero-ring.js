@@ -20,6 +20,8 @@ if (hero && ring) {
   let pointerTargetY = 0;
   let pointerCurrentX = 0;
   let pointerCurrentY = 0;
+  let scrollTarget = 0;
+  let scrollCurrent = 0;
   let lastPointer = null;
   let lastTime = 0;
   let visible = true;
@@ -34,13 +36,15 @@ if (hero && ring) {
     const radius = Math.max(70, Math.min(220, ring.clientHeight * .34));
     const depthRadius = Math.max(44, Math.min(150, ring.clientWidth * .13));
     ring.style.perspective = `${ring.clientWidth * 2.4}px`;
-    ring.style.transform = 'none';
+    const motionScroll = reduced.matches ? 0 : scrollCurrent;
+    const scrollTurn = motionScroll * 72;
+    ring.style.transform = `rotateX(${14 + motionScroll * 18}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(${-5 + motionScroll * 8}deg) scale(${(1 - motionScroll * .2).toFixed(3)})`;
     for (const track of tracks) {
       track.style.transform = `rotateX(${-22 + pointerCurrentY * 8}deg) rotateY(${pointerCurrentX * 12}deg)`;
     }
     for (const { element, index, phase } of letters) {
       const trackPhase = phase === 0 ? -58 : 58;
-      const theta = (angle + trackPhase + (index - (phrase.length - 1) / 2) * 24) * Math.PI / 180;
+      const theta = (angle + scrollTurn + trackPhase + (index - (phrase.length - 1) / 2) * 24) * Math.PI / 180;
       const x = ((index - (phrase.length - 1) / 2) / ((phrase.length - 1) / 2)) * axisHalfLength;
       const y = Math.sin(theta) * radius;
       const z = Math.cos(theta) * depthRadius;
@@ -60,6 +64,7 @@ if (hero && ring) {
     pointerActivity *= Math.exp(-5.4 * dt);
     pointerCurrentX += (pointerTargetX - pointerCurrentX) * (1 - Math.exp(-10 * dt));
     pointerCurrentY += (pointerTargetY - pointerCurrentY) * (1 - Math.exp(-10 * dt));
+    scrollCurrent += (scrollTarget - scrollCurrent) * (1 - Math.exp(-8 * dt));
     const target = reduced.matches ? 0 : baseSpeed + activity * (maxSpeed - baseSpeed);
     speed += (target - speed) * (1 - Math.exp(-8 * dt));
     angle += speed * dt;
@@ -81,10 +86,17 @@ if (hero && ring) {
     wake();
   });
   hero.addEventListener('pointerleave', () => { lastPointer = null; pointerTargetX = 0; pointerTargetY = 0; });
-  reduced.addEventListener('change', () => { if (reduced.matches) { activity = 0; pointerActivity = 0; speed = 0; pointerTargetX = 0; pointerTargetY = 0; } wake(); });
+  const updateScrollTarget = () => {
+    const rect = hero.getBoundingClientRect();
+    scrollTarget = Math.max(0, Math.min(1, -rect.top / Math.max(1, hero.offsetHeight * .8)));
+    wake();
+  };
+  window.addEventListener('scroll', updateScrollTarget, { passive: true });
+  reduced.addEventListener('change', () => { if (reduced.matches) { activity = 0; pointerActivity = 0; speed = 0; scrollCurrent = 0; pointerTargetX = 0; pointerTargetY = 0; } wake(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; lastTime = 0; } else { lastTime = 0; wake(); } });
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { lastTime = 0; wake(); } else { cancelAnimationFrame(raf); raf = 0; lastTime = 0; } }, { threshold: .01 }).observe(hero);
   new ResizeObserver(updateRing).observe(ring);
+  updateScrollTarget();
   updateRing();
   wake();
 }

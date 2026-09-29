@@ -182,6 +182,7 @@
       "targetZEnd": -35,
       "focalX": 0,
       "focalY": 0,
+      "rollDegrees": 90,
       "yawDegrees": 8,
       "pitchDegrees": 5
     },

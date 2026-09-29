@@ -47,6 +47,8 @@ export class GalaxyInstance {
     this.scene = new THREE.Scene(); this.scene.background = new THREE.Color('#02030d');
     this.camera = new THREE.PerspectiveCamera(46, 1, .1, 240);
     this.clouds = [];
+    this.rollDegrees = Number(metadata.config?.camera?.rollDegrees ?? 0);
+    this.activeRollDegrees = this.rollDegrees;
     try {
       this.clouds.push(new StarCloud(new Float32Array(buffers[0]), specs[0].count, 'bright', specs[0].stride));
       this.clouds.push(new StarCloud(new Float32Array(buffers[1]), specs[1].count, 'medium', specs[1].stride));
@@ -88,8 +90,13 @@ export class GalaxyInstance {
       const xyScale = scale * (1 - Math.min(1,this.params.morph+.85)) + Math.min(1,this.params.morph+.85);
       const finalZ = -22 + (z + 22) * Math.min(1,this.params.morph+.85) * this.params.depthStrength;
       const distance = this.target.z + this.radius - finalZ;
-      xs.push((data.getX(i) * xyScale - this.target.x) / distance);
-      ys.push((data.getY(i) * xyScale - this.target.y) / distance);
+      const rawX = data.getX(i) * xyScale - this.target.x;
+      const rawY = data.getY(i) * xyScale - this.target.y;
+      const roll = rad(this.activeRollDegrees || 0);
+      const x = rawX * Math.cos(roll) - rawY * Math.sin(roll);
+      const y = rawX * Math.sin(roll) + rawY * Math.cos(roll);
+      xs.push(x / distance);
+      ys.push(y / distance);
     }
     xs.sort((a,b)=>a-b); ys.sort((a,b)=>a-b);
     const q = (a,p) => a[Math.floor((a.length - 1) * p)];
@@ -97,6 +104,10 @@ export class GalaxyInstance {
   }
   resize(width, height, dpr) {
     this.width = width; this.height = height; this.dpr = dpr;
+    const landscape = width > height;
+    this.activeRollDegrees = landscape ? this.rollDegrees : 0;
+    for (const cloud of this.clouds) cloud.points.rotation.z = rad(this.activeRollDegrees);
+    this.bounds = this.measureComposition();
     const aspect = width / height, b = this.bounds;
     // Wider fixed layout framing. Orbiting the focus cancels most rigid camera rotation;
     // reserve a depth-parallax margin plus breathing, with no scroll-dependent zoom.

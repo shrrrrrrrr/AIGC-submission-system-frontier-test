@@ -218,7 +218,7 @@ export class GalaxyScene {
     const target=new THREE.Vector3(config.focalX||0,config.focalY||0,config.targetZEnd??-35);
     const dz=(config.endZ??12)-target.z;
     const dy=Math.sin(Math.PI*.9)*Math.tan(THREE.MathUtils.degToRad(config.pitchDegrees??5))*dz*.12;
-    this.presentation={camera:this.camera,clouds:[this.stars[0],this.nebula[1],this.foreground],params:this.params,target,radius:Math.hypot(dz,dy),basePitch:Math.atan2(dy,dz),presentationScale:config.presentationScale ?? 1,localProgress:null,measureComposition:GalaxyInstance.prototype.measureComposition};
+    this.presentation={camera:this.camera,clouds:[this.stars[0],this.nebula[1],this.foreground],params:this.params,target,radius:Math.hypot(dz,dy),basePitch:Math.atan2(dy,dz),presentationScale:config.presentationScale ?? 1,rollDegrees:config.rollDegrees ?? 0,activeRollDegrees:0,localProgress:null,measureComposition:GalaxyInstance.prototype.measureComposition};
     this.presentation.bounds=this.presentation.measureComposition();
     GalaxyInstance.prototype.resize.call(this.presentation,innerWidth,innerHeight,this.renderer.getPixelRatio());
   }
