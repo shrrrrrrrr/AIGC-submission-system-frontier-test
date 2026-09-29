@@ -30,28 +30,33 @@ if (hero && ring) {
   const maxSpeed = 72;
 
   function updateRing() {
-    // The cylinder axis runs left-to-right. Characters retain a readable
-    // horizontal order while their y/z coordinates roll around the surface.
-    const axisHalfLength = Math.max(150, Math.min(520, ring.clientWidth * .43));
-    const radius = Math.max(70, Math.min(220, ring.clientHeight * .34));
+    // One shared horizontal cylinder rotation drives both complete phrases.
+    // Each glyph is fixed to the same cylindrical surface; the rear half is
+    // mirrored so it becomes readable again as it rolls into the front.
+    const radiusX = Math.max(180, Math.min(520, ring.clientWidth * .40));
+    const radiusY = Math.max(120, Math.min(230, ring.clientHeight * .34));
     const depthRadius = Math.max(44, Math.min(150, ring.clientWidth * .13));
+    const step = 144 / (phrase.length - 1);
     ring.style.perspective = `${ring.clientWidth * 2.4}px`;
     const motionScroll = reduced.matches ? 0 : scrollCurrent;
     const scrollTurn = motionScroll * 72;
     ring.style.transform = `rotateX(${14 + motionScroll * 18}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(${-5 + motionScroll * 8}deg) scale(${(1 - motionScroll * .2).toFixed(3)})`;
     for (const track of tracks) {
-      track.style.transform = `rotateX(${-22 + pointerCurrentY * 8}deg) rotateY(${pointerCurrentX * 12}deg)`;
+      track.style.transform = `rotateX(${pointerCurrentY * 8}deg)`;
     }
     for (const { element, index, phase } of letters) {
-      const trackPhase = phase === 0 ? -70 : 70;
-      const theta = (angle + scrollTurn + trackPhase + (index - (phrase.length - 1) / 2) * 8.5) * Math.PI / 180;
-      const x = ((index - (phrase.length - 1) / 2) / ((phrase.length - 1) / 2)) * axisHalfLength;
-      const y = Math.sin(theta) * radius;
+      const trackPhase = phase === 0 ? 0 : 180;
+      const offset = (index - (phrase.length - 1) / 2) * step;
+      const theta = (-(angle + scrollTurn + trackPhase) + offset) * Math.PI / 180;
+      const x = Math.sin(theta) * radiusX;
+      const y = Math.cos(theta) * radiusY;
       const z = Math.cos(theta) * depthRadius;
       const depth = (Math.cos(theta) + 1) * .5;
-      const surfaceTilt = Math.sin(theta) * 14;
-      element.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, ${z.toFixed(3)}px) rotateX(${surfaceTilt.toFixed(3)}deg)`;
-      element.style.opacity = String(.78 + depth * .22);
+      const scale = .74 + depth * .32;
+      const mirror = z < 0 ? -1 : 1;
+      const surfaceTilt = theta * .42;
+      element.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, ${z.toFixed(3)}px) rotateZ(${surfaceTilt.toFixed(3)}rad) scale(${(scale * mirror).toFixed(3)}, ${scale.toFixed(3)})`;
+      element.style.opacity = String(.2 + depth * .8);
       element.style.zIndex = String(Math.round(depth * 100));
       element.style.filter = 'none';
     }
