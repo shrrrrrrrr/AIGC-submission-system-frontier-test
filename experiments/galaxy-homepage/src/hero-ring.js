@@ -43,15 +43,16 @@ if (hero && ring) {
       track.style.transform = `rotateX(${-22 + pointerCurrentY * 8}deg) rotateY(${pointerCurrentX * 12}deg)`;
     }
     for (const { element, index, phase } of letters) {
-      const trackPhase = phase === 0 ? -58 : 58;
-      const theta = (angle + scrollTurn + trackPhase + (index - (phrase.length - 1) / 2) * 24) * Math.PI / 180;
+      const trackPhase = phase === 0 ? -70 : 70;
+      const theta = (angle + scrollTurn + trackPhase + (index - (phrase.length - 1) / 2) * 8.5) * Math.PI / 180;
       const x = ((index - (phrase.length - 1) / 2) / ((phrase.length - 1) / 2)) * axisHalfLength;
       const y = Math.sin(theta) * radius;
       const z = Math.cos(theta) * depthRadius;
       const depth = (Math.cos(theta) + 1) * .5;
-      const surfaceTilt = Math.sin(theta) * 24;
+      const surfaceTilt = Math.sin(theta) * 14;
       element.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, ${z.toFixed(3)}px) rotateX(${surfaceTilt.toFixed(3)}deg)`;
-      element.style.opacity = String(.48 + depth * .52);
+      element.style.opacity = String(.78 + depth * .22);
+      element.style.zIndex = String(Math.round(depth * 100));
       element.style.filter = 'none';
     }
   }
