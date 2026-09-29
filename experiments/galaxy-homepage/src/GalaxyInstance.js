@@ -16,8 +16,18 @@ export class GalaxyInstance {
   static async load(entry, signal) {
     const base = entry.directory;
     const metadata = await readAsset(`${base}/metadata.json`, signal);
-    const specs = [metadata.stars.layers.bright, metadata.nebula.layers.mid, metadata.foreground];
-    // Fetch only the three approved layers; no residual texture enters the WebGL scene.
+    // Keep the homepage layer set identical to the tuning page. The residual
+    // image remains a debug-only backdrop; all point layers are available so
+    // saved visibility and size/intensity settings apply consistently.
+    const specs = [
+      metadata.stars.layers.bright,
+      metadata.stars.layers.medium,
+      metadata.stars.layers.dust,
+      metadata.nebula.layers.front,
+      metadata.nebula.layers.mid,
+      metadata.nebula.layers.back,
+      metadata.foreground
+    ];
     const buffers = await Promise.all(specs.map(s => readAsset(`${base}/${s.file}`, signal, true)));
     signal.throwIfAborted();
     let runtime = null;
@@ -39,8 +49,12 @@ export class GalaxyInstance {
     this.clouds = [];
     try {
       this.clouds.push(new StarCloud(new Float32Array(buffers[0]), specs[0].count, 'bright', specs[0].stride));
-      this.clouds.push(new NebulaCloud(new Float32Array(buffers[1]), specs[1].count, 'mid', specs[1].stride));
-      this.clouds.push(new ForegroundDust(new Float32Array(buffers[2]), specs[2].count, specs[2].stride));
+      this.clouds.push(new StarCloud(new Float32Array(buffers[1]), specs[1].count, 'medium', specs[1].stride));
+      this.clouds.push(new StarCloud(new Float32Array(buffers[2]), specs[2].count, 'dust', specs[2].stride));
+      this.clouds.push(new NebulaCloud(new Float32Array(buffers[3]), specs[3].count, 'front', specs[3].stride));
+      this.clouds.push(new NebulaCloud(new Float32Array(buffers[4]), specs[4].count, 'mid', specs[4].stride));
+      this.clouds.push(new NebulaCloud(new Float32Array(buffers[5]), specs[5].count, 'back', specs[5].stride));
+      this.clouds.push(new ForegroundDust(new Float32Array(buffers[6]), specs[6].count, specs[6].stride));
     } catch (error) { this.dispose(); throw error; }
     this.scene.add(...this.clouds.map(c => c.points));
     const saved = runtimePreset || approved;
@@ -55,15 +69,19 @@ export class GalaxyInstance {
     this.localProgress = null; this.pitch = 0; this.yaw = 0;
     this.enabledPoints = specs.reduce((n, s) => n + s.count, 0);
     this.totalPoints = entry.pointCounts.total;
-    this.densityRetainedPoints = specs[0].count + specs[2].count;
-    const nebulaRaw = new Float32Array(buffers[1]);
-    for (let i = 0; i < specs[1].count; i++) if (nebulaRaw[i * specs[1].stride + 9] <= approved.pointDensity) this.densityRetainedPoints++;
+    this.densityRetainedPoints = specs[0].count + specs[1].count + specs[2].count + specs[6].count;
+    for (const layerIndex of [3, 4, 5]) {
+      const nebulaRaw = new Float32Array(buffers[layerIndex]);
+      for (let i = 0; i < specs[layerIndex].count; i++) if (nebulaRaw[i * specs[layerIndex].stride + 8] <= approved.pointDensity) this.densityRetainedPoints++;
+    }
     this.bounds = this.measureComposition();
   }
   measureComposition() {
     // Match the actual vertex shader's image->volume morph and Z expansion.
     // Retain 98% of the mid-nebula composition, excluding only sparse outliers.
-    const data = this.clouds[1].geometry.attributes.position;
+    const compositionCloud = this.clouds.find((cloud) => cloud.layer === 'mid') || this.clouds[1];
+    if (!compositionCloud) return { left: -.25, right: .25, bottom: -.25, top: .25 };
+    const data = compositionCloud.geometry.attributes.position;
     const xs = [], ys = [];
     for (let i = 0; i < data.count; i++) {
       const z = data.getZ(i), scale = 50 / Math.max(1, 28 - z);
@@ -118,7 +136,7 @@ export class GalaxyInstance {
   }
   debug() {
     return { id:this.entry.assetId, totalPoints:this.totalPoints, enabledPoints:this.enabledPoints, submittedPoints:this.enabledPoints,
-      densityRetainedPoints:this.densityRetainedPoints, morph:this.clouds[1].material.uniforms.uMorph.value,
+      densityRetainedPoints:this.densityRetainedPoints, morph:(this.clouds.find((cloud) => cloud.layer === 'mid') || this.clouds[1]).material.uniforms.uMorph.value,
       radius:this.camera.position.distanceTo(this.target), pitch:THREE.MathUtils.radToDeg(this.pitch), yaw:THREE.MathUtils.radToDeg(this.yaw), framing:this.framing, revision:this.revision };
   }
   dispose() { for (const cloud of this.clouds) cloud.dispose(); this.clouds.length = 0; }

@@ -28,18 +28,20 @@ if (hero && ring) {
   const maxSpeed = 72;
 
   function updateRing() {
-    const cylinderHalfLength = Math.max(140, Math.min(520, ring.clientWidth * .43));
-    const cylinderRadius = Math.max(84, Math.min(230, ring.clientHeight * .38));
-    const cylinderDepth = Math.max(42, Math.min(132, ring.clientWidth * .11));
-    ring.style.transform = `rotateX(${61 + pointerCurrentY * 10}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(-10deg)`;
+    // The cylinder axis is vertical. Each track is a complete, readable title
+    // placed on its own horizontal band, with depth following the cylinder's
+    // circular surface rather than interleaving characters from both titles.
+    const cylinderHalfLength = Math.max(150, Math.min(520, ring.clientWidth * .43));
+    const cylinderRadius = Math.max(70, Math.min(190, ring.clientWidth * .18));
+    const cylinderDepth = Math.max(44, Math.min(150, ring.clientWidth * .13));
+    const trackOffset = Math.max(86, Math.min(170, ring.clientHeight * .18));
+    ring.style.transform = `rotateY(${18 + pointerCurrentX * 16}deg) rotateZ(${-10 + pointerCurrentY * 5}deg)`;
     for (const { element, index, phase } of letters) {
-      // Each complete title sits on one side of a horizontal cylinder. The
-      // reading order stays left-to-right while y/z follow the curved surface.
       const u = (index - (phrase.length - 1) / 2) / ((phrase.length - 1) / 2);
       const baseAngle = (angle + phase) * Math.PI / 180;
       const surfaceAngle = baseAngle + u * .46;
       const x = u * cylinderHalfLength;
-      const y = Math.sin(surfaceAngle) * cylinderRadius;
+      const y = (phase === 0 ? -trackOffset : trackOffset) + Math.sin(surfaceAngle) * cylinderRadius;
       const z = Math.cos(surfaceAngle) * cylinderDepth;
       const depth = (z / cylinderDepth + 1) * .5;
       const surfaceTilt = Math.sin(surfaceAngle) * 12;

@@ -10,7 +10,17 @@ const assets = new Set(['galaxies/manifest.json']);
 for (const entry of manifest.assets) {
   const base = entry.directory;
   const meta = JSON.parse(readFileSync(resolve(publicRoot, base, 'metadata.json')));
-  for (const file of ['metadata.json', meta.stars.layers.bright.file, meta.nebula.layers.mid.file, meta.foreground.file, meta.residual.file]) assets.add(`${base}/${file}`);
+  for (const file of [
+    'metadata.json',
+    meta.stars.layers.bright.file,
+    meta.stars.layers.medium.file,
+    meta.stars.layers.dust.file,
+    meta.nebula.layers.front.file,
+    meta.nebula.layers.mid.file,
+    meta.nebula.layers.back.file,
+    meta.foreground.file,
+    meta.residual.file
+  ]) assets.add(`${base}/${file}`);
 }
 export default defineConfig({
   base: './', publicDir: 'public',

@@ -63,3 +63,14 @@ body:not(.reveal-runtime) [data-reveal],body:not(.reveal-runtime) [data-reveal-g
 /* Join both side faces to the same front-rectangle vertices. */
 .hero-center .hero-actions>a::before,.galaxy-chapter .source-band .button-link::before,.galaxy-chapter .final-cta .button-link::before{top:-8px;left:0;width:calc(100% + 8px);height:8px;border:1px solid #e8e0ff72;border-bottom:0;background:#cbb8ff14;transform:none;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .hero-center .hero-actions>a::after,.galaxy-chapter .source-band .button-link::after,.galaxy-chapter .final-cta .button-link::after{top:-8px;left:auto;right:-8px;width:8px;height:calc(100% + 8px);border:1px solid #e8e0ff72;border-left:0;background:#9d84db18;transform:none;clip-path:polygon(0 8px,100% 0,100% calc(100% - 8px),0 100%)}
+
+/* Upright title cylinder: keep both complete tracks readable and separated. */
+.hero-ring{width:clamp(520px,64vw,880px);height:clamp(420px,44vw,560px);margin:-16px auto -8px;transform:rotateY(18deg) rotateZ(-10deg);}
+.ring-band{left:20%;right:20%;top:8%;bottom:8%;border-radius:50%;}
+.ring-band:before,.ring-band:after{left:3%;right:3%;height:18%;border-radius:50%;}
+.ring-band:before{top:-5%;transform:translateZ(54px)}
+.ring-band:after{bottom:-5%;transform:translateZ(-54px)}
+.ring-letter{font-size:clamp(64px,7.2vw,112px)}
+@media(max-width:820px){.hero-ring{width:min(90vw,680px);height:min(112vw,760px);margin:-24px auto -12px}.ring-band{left:18%;right:18%}.ring-letter{font-size:clamp(46px,8vw,78px)}}
+@media(max-width:620px){.hero-ring{width:84vw;height:126vw;margin:-8px auto 0}.ring-band{left:14%;right:14%;top:10%;bottom:10%}.ring-letter{font-size:clamp(30px,9vw,48px)}}
+@media(prefers-reduced-motion:reduce){.hero-ring{transform:rotateY(18deg) rotateZ(-10deg)}}

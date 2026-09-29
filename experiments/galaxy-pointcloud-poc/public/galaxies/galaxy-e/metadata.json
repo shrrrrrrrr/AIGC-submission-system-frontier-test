@@ -160,6 +160,17 @@
     "file": "residual.webp",
     "lossless": true
   },
-  "config": {},
+  "config": {
+    "camera": {
+      "startZ": 58,
+      "endZ": 12,
+      "targetZStart": -22,
+      "targetZEnd": -35,
+      "focalX": 0,
+      "focalY": -4.5,
+      "yawDegrees": 8,
+      "pitchDegrees": 5
+    }
+  },
   "depthNote": "Artistic single-image reconstruction, not recovered astronomical distances."
 }
