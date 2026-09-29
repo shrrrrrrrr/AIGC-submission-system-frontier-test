@@ -2,16 +2,13 @@ const hero = document.querySelector('.hero');
 const ring = document.querySelector('.hero-ring');
 if (hero && ring) {
   const phrase = '生成式VR单元投稿';
-  const tracks = [...ring.querySelectorAll('.ring-word-track')];
-  const letters = tracks.flatMap((track) => phrase.split('').map((character, index) => {
-    const element = document.createElement('span');
-    element.className = 'ring-letter';
-    element.textContent = character;
-    element.setAttribute('aria-hidden', 'true');
-    track.append(element);
-    return { element, index, phase: Number(track.dataset.ringPhase || 0) };
-  }));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  const textures = { front: document.createElement('canvas'), back: document.createElement('canvas') };
+  canvas.className = 'hero-cylinder-canvas';
+  canvas.setAttribute('aria-hidden', 'true');
+  ring.replaceChildren(canvas);
   let angle = 0;
   let speed = 0;
   let activity = 0;
@@ -28,38 +25,104 @@ if (hero && ring) {
   let raf = 0;
   const baseSpeed = 7;
   const maxSpeed = 72;
+  const textureWidth = 2048;
+  const textureHeight = 320;
+
+  function makeTexture(target, fill, stroke) {
+    target.width = textureWidth;
+    target.height = textureHeight;
+    const textureContext = target.getContext('2d');
+    const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--top-display').trim() || 'DeyiHei, sans-serif';
+    textureContext.clearRect(0, 0, textureWidth, textureHeight);
+    textureContext.font = `800 224px ${fontFamily}`;
+    textureContext.textAlign = 'center';
+    textureContext.textBaseline = 'middle';
+    textureContext.lineJoin = 'round';
+    textureContext.lineWidth = 10;
+    textureContext.shadowColor = fill === '#b5a8d8' ? '#9d86df88' : '#ffffff66';
+    textureContext.shadowBlur = 18;
+    textureContext.strokeStyle = stroke;
+    textureContext.fillStyle = fill;
+    textureContext.strokeText(phrase, textureWidth / 2, textureHeight / 2 + 8);
+    textureContext.fillText(phrase, textureWidth / 2, textureHeight / 2 + 8);
+  }
+
+  function rebuildTextures() {
+    makeTexture(textures.front, '#b5a8d8', '#ffffff');
+    makeTexture(textures.back, '#ffffff', '#cbb5ff');
+  }
+
+  function drawTextureSlice(texture, slice, x0, x1, y, height, mirrored, alpha) {
+    const sliceCount = 112;
+    const sourceWidth = texture.width / sliceCount;
+    const sourceLeft = mirrored ? texture.width - (slice + 1) * sourceWidth : slice * sourceWidth;
+    const width = Math.max(1, Math.abs(x1 - x0) + 1.4);
+    const left = Math.min(x0, x1) - .7;
+    const flip = (x1 < x0) !== mirrored;
+    context.save();
+    context.globalAlpha = alpha;
+    if (flip) {
+      context.translate(left + width, y);
+      context.scale(-1, 1);
+      context.drawImage(texture, sourceLeft, 0, sourceWidth, texture.height, 0, 0, width, height);
+    } else {
+      context.drawImage(texture, sourceLeft, 0, sourceWidth, texture.height, left, y, width, height);
+    }
+    context.restore();
+  }
+
+  function drawCylinder() {
+    const width = ring.clientWidth;
+    const height = ring.clientHeight;
+    if (!width || !height) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const pixelWidth = Math.max(1, Math.round(width * dpr));
+    const pixelHeight = Math.max(1, Math.round(height * dpr));
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+    }
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.clearRect(0, 0, width, height);
+    const motionScroll = reduced.matches ? 0 : scrollCurrent;
+    const rotation = -(angle + motionScroll * 72) * Math.PI / 180;
+    const radiusX = Math.min(width * .47, 560);
+    const radiusZ = Math.min(width * .22, 260);
+    const pitchOffset = radiusZ * Math.sin(12 * Math.PI / 180);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const titleHeight = Math.min(170, Math.max(74, height * .22));
+    const span = 160 * Math.PI / 180;
+    const slices = 112;
+    const projected = [];
+    for (const [texture, phase] of [[textures.front, 0], [textures.back, Math.PI]]) {
+      for (let slice = 0; slice < slices; slice += 1) {
+        const start = (slice / slices - .5) * span + rotation + phase;
+        const end = ((slice + 1) / slices - .5) * span + rotation + phase;
+        const middle = (start + end) / 2;
+        const z = Math.cos(middle);
+        const depth = (z + 1) * .5;
+        const x0 = centerX + Math.sin(start) * radiusX;
+        const x1 = centerX + Math.sin(end) * radiusX;
+        const scale = (.78 + depth * .25) * (phase ? .9 : 1);
+        const sliceHeight = titleHeight * scale;
+        projected.push({ texture, slice, x0, x1, y: centerY - z * pitchOffset - sliceHeight / 2, sliceHeight, z, alpha: .24 + depth * .76 });
+      }
+    }
+    projected.sort((a, b) => a.z - b.z);
+    for (const item of projected) drawTextureSlice(item.texture, item.slice, item.x0, item.x1, item.y, item.sliceHeight, item.z < 0, item.alpha);
+  }
 
   function updateRing() {
-    // One shared horizontal cylinder rotation drives both complete phrases.
-    // Each glyph is fixed to the same cylindrical surface; the rear half is
-    // mirrored so it becomes readable again as it rolls into the front.
-    const radiusX = Math.max(180, Math.min(520, ring.clientWidth * .40));
-    const radiusY = Math.max(120, Math.min(230, ring.clientHeight * .34));
-    const depthRadius = Math.max(44, Math.min(150, ring.clientWidth * .13));
-    const step = 144 / (phrase.length - 1);
     ring.style.perspective = `${ring.clientWidth * 2.4}px`;
     const motionScroll = reduced.matches ? 0 : scrollCurrent;
-    const scrollTurn = motionScroll * 72;
-    ring.style.transform = `rotateX(${14 + motionScroll * 18}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(${-5 + motionScroll * 8}deg) scale(${(1 - motionScroll * .2).toFixed(3)})`;
-    for (const track of tracks) {
-      track.style.transform = `rotateX(${pointerCurrentY * 8}deg)`;
-    }
-    for (const { element, index, phase } of letters) {
-      const trackPhase = phase === 0 ? 0 : 180;
-      const offset = (index - (phrase.length - 1) / 2) * step;
-      const theta = (-(angle + scrollTurn + trackPhase) + offset) * Math.PI / 180;
-      const x = Math.sin(theta) * radiusX;
-      const y = Math.cos(theta) * radiusY;
-      const z = Math.cos(theta) * depthRadius;
-      const depth = (Math.cos(theta) + 1) * .5;
-      const scale = .74 + depth * .32;
-      const mirror = z < 0 ? -1 : 1;
-      const surfaceTilt = theta * .42;
-      element.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(3)}px, ${y.toFixed(3)}px, ${z.toFixed(3)}px) rotateZ(${surfaceTilt.toFixed(3)}rad) scale(${(scale * mirror).toFixed(3)}, ${scale.toFixed(3)})`;
-      element.style.opacity = String(.2 + depth * .8);
-      element.style.zIndex = String(Math.round(depth * 100));
-      element.style.filter = 'none';
-    }
+    // The CSS transform supplies the small camera motion. The canvas itself
+    // is a single texture projection onto one invisible Y-axis cylinder.
+    ring.style.transform = `rotateX(${8 + motionScroll * 14}deg) rotateY(${pointerCurrentX * 18}deg) rotateZ(${-5 + motionScroll * 8}deg) scale(${(1 - motionScroll * .36).toFixed(3)})`;
+    canvas.style.transform = `rotateX(${pointerCurrentY * 7}deg)`;
+    drawCylinder();
   }
   function wake() { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(tick); }
   function tick(now) {
@@ -102,6 +165,8 @@ if (hero && ring) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; lastTime = 0; } else { lastTime = 0; wake(); } });
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { lastTime = 0; wake(); } else { cancelAnimationFrame(raf); raf = 0; lastTime = 0; } }, { threshold: .01 }).observe(hero);
   new ResizeObserver(updateRing).observe(ring);
+  rebuildTextures();
+  if (document.fonts?.ready) document.fonts.ready.then(() => { rebuildTextures(); updateRing(); });
   updateScrollTarget();
   updateRing();
   wake();
