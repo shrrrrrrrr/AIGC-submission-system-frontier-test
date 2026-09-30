@@ -122,12 +122,15 @@ export class GalaxyInstance {
     // the homepage. Presentation framing is allowed to open the FOV so the
     // approved point-cloud composition remains visible with deep-space margin.
     const configuredScale = Number(this.presentationScale ?? this.metadata?.config?.camera?.presentationScale ?? 1);
-    // Galaxy E is the tall source that was rolled for landscape presentation;
-    // open its framing to the minimum safe scale so its background fills the
-    // homepage viewport instead of leaving a reduced central band.
-    const presentationScale = THREE.MathUtils.clamp(this.entry.assetId === 'galaxy-e' ? Math.min(configuredScale, .72) : configuredScale, .72, 1.2);
+    const isGalaxyE = this.entry.assetId === 'galaxy-e';
+    const isNarrowGalaxyE = isGalaxyE && width < 700;
+    // E is the tall source rolled for landscape presentation. Open its
+    // framing further on desktop, while keeping a slightly wider mobile
+    // safety margin so the portrait composition remains readable.
+    const minimumScale = isGalaxyE ? (isNarrowGalaxyE ? .68 : .64) : .72;
+    const presentationScale = THREE.MathUtils.clamp(isGalaxyE ? Math.min(configuredScale, minimumScale) : configuredScale, minimumScale, 1.2);
     const requiredTanHalf = Math.max(safeX / aspect, safeY) * presentationScale / safeOverscan;
-    const minimumFovHalf = this.entry.assetId === 'galaxy-e' ? 15 : 18;
+    const minimumFovHalf = isGalaxyE ? (isNarrowGalaxyE ? 13 : 12) : 18;
     const tanHalf = Math.min(Math.tan(rad(42)), Math.max(Math.tan(rad(minimumFovHalf)), requiredTanHalf));
     this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanHalf));
     this.camera.aspect = aspect; this.camera.updateProjectionMatrix();
