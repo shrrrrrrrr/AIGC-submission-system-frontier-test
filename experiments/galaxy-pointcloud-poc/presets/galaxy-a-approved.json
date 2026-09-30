@@ -1,26 +1,36 @@
 {
-  "assetId": "galaxy-a",
-  "name": "Galaxy A approved",
-  "source": "/galaxy/source.png",
   "mode": "hybrid",
-  "previewProgress": 1.0,
-  "residual": 0.0,
-  "depthStrength": 1.57,
-  "thickness": 2.0,
-  "parallax": 2.0,
-  "morph": 0.0,
-  "starSize": 1.24,
-  "nebulaSize": 0.48,
-  "pointDensity": 0.83,
-  "flightSpeed": 2.0,
-  "starIntensity": 1.5,
-  "foregroundCleanup": 1.0,
-  "foregroundSoftness": 2.0,
+  "residual": 0,
+  "depthStrength": 1.8,
+  "thickness": 2,
+  "parallax": 2,
+  "starSize": 2,
+  "nebulaSize": 0.96,
+  "foregroundSize": 1,
+  "nebulaOpacity": 0.62,
+  "pointDensity": 0.92,
   "bloom": true,
-  "bloomStrength": 0.42,
+  "bloomStrength": 0.81,
+  "morph": 0,
+  "flightSpeed": 2,
+  "starIntensity": 1.5,
+  "foregroundCleanup": 1,
+  "foregroundSoftness": 2,
+  "foregroundVisibility": true,
+  "residualVisible": false,
+  "starLayers": {
+    "bright": 1,
+    "medium": 0.8,
+    "dust": 0.42
+  },
+  "scrollPitchDegrees": 8,
+  "pointerYawDegrees": 7,
+  "pointerPitchDegrees": 4,
+  "followSpeed": 14,
+  "safeOverscan": 1.03,
   "starVisibility": {
     "bright": 1,
-    "medium": 0,
+    "medium": 1,
     "dust": 0
   },
   "nebulaVisibility": {
@@ -28,22 +38,14 @@
     "mid": 1,
     "back": 0
   },
-  "foregroundVisibility": 1,
-  "residualVisible": 0,
-  "starLayers": {
-    "bright": 1,
-    "medium": 0.8,
-    "dust": 0.42
-  },
   "nebulaIntensity": {
     "front": 0.55,
-    "mid": 1.0,
+    "mid": 1,
     "back": 0.52
   },
-  "notes": "Approved Galaxy A UI state. morph is the manual morph parameter; effective morph remains manual morph + cameraProgress * 0.85, clamped to [0,1].",
-  "scrollPitchDegrees": 6.0,
-  "pointerYawDegrees": 5.0,
-  "pointerPitchDegrees": 3.0,
-  "followSpeed": 6.0,
-  "safeOverscan": 1.12
+  "assetId": "galaxy-a",
+  "name": "Galaxy A approved",
+  "source": "/galaxy/source.png",
+  "previewProgress": 1,
+  "notes": "Approved Galaxy A UI state. morph is the manual morph parameter; effective morph remains manual morph + cameraProgress * 0.85, clamped to [0,1]."
 }

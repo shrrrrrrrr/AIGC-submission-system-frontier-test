@@ -1,26 +1,36 @@
 {
-  "assetId": "galaxy-c",
-  "name": "GALAXY-C default (Galaxy A parameters)",
-  "source": "/galaxies/galaxy-c/source.png",
   "mode": "hybrid",
-  "previewProgress": 1.0,
-  "residual": 0.0,
+  "residual": 0,
   "depthStrength": 1.57,
-  "thickness": 2.0,
-  "parallax": 2.0,
-  "morph": 0.0,
-  "starSize": 1.24,
-  "nebulaSize": 0.48,
-  "pointDensity": 0.83,
-  "flightSpeed": 2.0,
-  "starIntensity": 1.5,
-  "foregroundCleanup": 1.0,
-  "foregroundSoftness": 2.0,
+  "thickness": 0.2,
+  "parallax": 2,
+  "starSize": 1.61,
+  "nebulaSize": 0.4,
+  "foregroundSize": 1,
+  "nebulaOpacity": 0.62,
+  "pointDensity": 0.68,
   "bloom": true,
-  "bloomStrength": 0.42,
+  "bloomStrength": 0.21,
+  "morph": 1,
+  "flightSpeed": 2,
+  "starIntensity": 1.45,
+  "foregroundCleanup": 1,
+  "foregroundSoftness": 2,
+  "foregroundVisibility": true,
+  "residualVisible": false,
+  "starLayers": {
+    "bright": 1,
+    "medium": 0.8,
+    "dust": 0.42
+  },
+  "scrollPitchDegrees": 8,
+  "pointerYawDegrees": 7,
+  "pointerPitchDegrees": 4,
+  "followSpeed": 14,
+  "safeOverscan": 1.07,
   "starVisibility": {
     "bright": 1,
-    "medium": 0,
+    "medium": 1,
     "dust": 0
   },
   "nebulaVisibility": {
@@ -28,22 +38,14 @@
     "mid": 1,
     "back": 0
   },
-  "foregroundVisibility": 1,
-  "residualVisible": 0,
-  "starLayers": {
-    "bright": 1,
-    "medium": 0.8,
-    "dust": 0.42
-  },
   "nebulaIntensity": {
     "front": 0.55,
-    "mid": 1.0,
+    "mid": 1,
     "back": 0.52
   },
-  "notes": "All runtime parameters intentionally match Galaxy A approved preset for scene comparison; source-derived point counts and colors remain asset-specific.",
-  "scrollPitchDegrees": 6.0,
-  "pointerYawDegrees": 5.0,
-  "pointerPitchDegrees": 3.0,
-  "followSpeed": 6.0,
-  "safeOverscan": 1.12
+  "assetId": "galaxy-c",
+  "name": "GALAXY-C default (Galaxy A parameters)",
+  "source": "/galaxies/galaxy-c/source.png",
+  "previewProgress": 1,
+  "notes": "All runtime parameters intentionally match Galaxy A approved preset for scene comparison; source-derived point counts and colors remain asset-specific."
 }

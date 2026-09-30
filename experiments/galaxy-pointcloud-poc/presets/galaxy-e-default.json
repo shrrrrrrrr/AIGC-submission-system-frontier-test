@@ -27,7 +27,7 @@
   "pointerYawDegrees": 7,
   "pointerPitchDegrees": 4,
   "followSpeed": 14,
-  "safeOverscan": 1.03,
+  "safeOverscan": 1.33,
   "starVisibility": {
     "bright": 1,
     "medium": 1,
